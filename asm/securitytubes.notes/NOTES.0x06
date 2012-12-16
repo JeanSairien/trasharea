@@ -1,0 +1,45 @@
+######################################################################
+# Basic Inscrutions 
+######################################################################
+
+ 1. Mov instruction most frequently used. Move source to destination:
+    ----------------------------------------------------------------
+
+    => movl = move 32 bit value
+       movl %eax, %ebx
+
+    => movw = move 16 bit value
+       movw %ax, %bh            # notes it's ax not ah.
+
+    => movb = move 8 bit value
+       movb %ah, %bh
+
+    => between registers:
+       movl %eax, %ebx
+
+    => between registers and memory:
+       location: 
+          .int 10
+       movl %eax, location
+       movl location, %ebx
+
+    => Immediate value into register:
+       movl $10, %ebx
+
+    => Immediate value into memory location:
+       location:
+          .byte 0
+       movb $10, location
+
+    => Moving data into indexed memory location:
+       -> BaseAddress(Offset, Index, Size)
+       IntegerArray:
+          .int 10,20,30,40,50
+       movl %eax,IntegerArray(0, 2, 4) 
+
+    => Indirect addressing using registers:
+       -> $ sign before a label name -> get mem address of location
+       movl $location, %edi
+       movl $9, (%edi)      # place value 9 pointed to EDI
+       movl $9, 4(%edi)     # place value 9 pointer to EDI+4
+       movl $9, -2(%edi)    # place value 9 pointer to EDI-2

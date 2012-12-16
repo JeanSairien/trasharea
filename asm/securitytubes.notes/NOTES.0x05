@@ -1,0 +1,64 @@
+######################################################################
+# Data Types
+######################################################################
+
+.data: (space reserved at compile time)
+	.byte = 1byte
+	.ascii = string
+	.asciz = string and null terminated
+	.int = 32 bit int
+	.short = 16 bit int
+	.float = single precision floating point number
+	.double = double precision floating point number
+
+.bss: (space created at runtime)
+	.comm = declare common memory area
+	.lcomm = declare local common mem area
+
+
+######################################################################
+# Program
+######################################################################
+
+.data
+   HelloWorld:
+      .ascii "HelloWorld!"
+   byteLocation:
+      .byte 10
+   Int32:
+      .int 2
+   Int16:
+      .short 3
+   Float:
+      .float 10.22
+   IntegerArray:
+      .int 10,20,30,40,50
+
+.bss
+   .comm LargeBuffer, 10000
+
+.text
+   .globl _start
+
+   _start:
+      nop
+      movl $1, %eax
+      movl $0, %eax
+
+######################################################################
+# End program
+######################################################################
+
+
+ 1. You can compile your program:
+    ----------------------------
+  $ as - gstabs -o yourcode.o yourcode.s
+  $ ld -o yourcode yourcode.o
+  $ ./yourcode
+
+ 2. You can use it with gdb and add break point:
+    -------------------------------------------
+
+  $ gdb ./yourcode
+  $ break *_start+1
+  $ info variables
