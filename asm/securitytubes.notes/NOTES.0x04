@@ -1,0 +1,103 @@
+######################################################################
+# Fourth video - Structure of an Assembly Program                    #
+######################################################################
+
+.data : All initialized data
+
+.bss : All unitialized data
+
+.text : Program instructions, a place for the assembly program with
+        the _start instruction (like main function in C).
+
+.globl _start : external callable routines
+
+_start : Main() routine
+
+ 1. System calls:
+    ------------
+  
+  o /usr/include/asm/unistd.h
+  o you can use the same C function in asm
+  o system calls are invoked with int $0x80
+
+ 2. Passing aguments to syscalls:
+    ----------------------------
+
+  EAX: System Call Number
+  EBX: first arg
+  ECX: second argument
+  EDX: third -
+  ESX: fourth -
+
+ 3. exit in assembly:
+    ----------------
+
+    1. sys call number for exit() is 1
+       => movl $1, %eax
+
+    2. status is lets say "0"
+       => movl $0, %ebx
+
+    3. call
+       => int $0x80
+
+######################################################################
+# Program
+######################################################################
+
+.text
+
+.globl _start
+
+_start:
+   movl $1, %eax # load eax with 1
+   movl $0, %ebx # load ebx with 0
+   int $0x80     # system call
+
+######################################################################
+# End of Program
+######################################################################
+
+ 4. You can compile your code with Gnu Assembler and create an object
+    file: 
+    -----------------------------------------------------------------
+
+ $ as -o yourcode.s yourcode.o
+
+ 5. And you can link your code:
+    --------------------------
+
+ $ ld -o yourcode.o yourcode
+
+ 6. You can execute your code:
+    -------------------------
+
+ $ ./yourcode
+
+######################################################################
+# Program
+######################################################################
+
+.data
+
+HelloWorldString:
+   .ascii "Hello World\n"
+
+.text
+
+.globl _start
+
+_start:
+   movl $4, %eax                # init the call to write
+   movl $1, %ebx                # init the file descriptor
+   movl $HelloWorldString, %ecx # pointer to the string
+   movl $12, %edx               # length of the sentence
+   int $0x80                    # system call
+
+   movl $1, %eax                # init for exit call
+   movl $0, %ebx                # disable ebx
+   int $0x80                    # system call
+
+######################################################################
+# End Program
+######################################################################

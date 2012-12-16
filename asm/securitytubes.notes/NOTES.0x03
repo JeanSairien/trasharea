@@ -1,0 +1,57 @@
+######################################################################
+# Third Video - Examining Memory and Stack with GDB                  #
+######################################################################
+
+ 1. Create a simple c program and compile it with gcc.
+    ------------------------------------------------- 
+     
+ 2. Use gdb with this command:
+    ------------------------- 
+     
+ $ gdb ./yourprogram
+
+ 3. to list the first line of the code and view other line:
+    -----------------------------------------------------    
+	     						 
+ (gdb) list 1						 							 
+
+ 4. You can run your code over gdb with this command:
+    ------------------------------------------------
+
+ (gdb) run arg1 arg2 argn
+
+ 5. You can disassemble your code and show the assembler code:
+    ---------------------------------------------------------
+
+ (gdb) disas main
+
+ 6. You can disassemble another function in your code:
+    -------------------------------------------------
+
+ (gdb) disas yourfunction
+
+ 7. You can add breakpoint and stop the program execution:
+    -----------------------------------------------------
+
+ (gdb) break 8 // line number or address view with help
+
+ 8. run the program and is stop on the breakpoint. You can continue
+    the program running with 'continue' or with 's':
+    ---------------------------------------------------------------
+
+ (gdb) continue
+ (gdb) s
+
+ 9. You can show information about registers and memory:
+    ---------------------------------------------------
+
+ (gdb) info registers    // view status of registers
+
+ (gdb) x/10xb youaddress // view data content into this address
+         |/||
+         | |+-> length of letters b,h,w,g
+       	 | +-->	print view o,x,d,u,t,f,a,i,o,s
+	 +----> count (in this example is 10 values printed)
+
+ 10. You can show argument (0x0000000A and 0x00000014 in video).
+     ----------------------------------------------------------

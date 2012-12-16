@@ -1,0 +1,28 @@
+######################################################################
+# Second  video Notes - Assembly Primer For Hackers                  #
+######################################################################
+
+ 1. Create a simple program and compile it with:
+    -------------------------------------------
+
+ $ gcc -ggdb -o yourcode yourcode.c
+
+ 2. Run the program, get the PID and view mapping:
+    ---------------------------------------------
+
+ $ PID=$(pgrep "yourcode") && cat /proc/$PID/maps
+
+ 3. Look the result and show the memory stack.
+    -----------------------------------------
+
+ 4. If you run against your code, the stack values change, It's due to
+    virtual memory randomization, kernel linux features. You can
+    disable this with this command:
+    ------------------------------------------------------
+
+ $ echo 0 > /proc/sys/kernel/randomize_va_space
+
+ 5. Right now, your stack memory has the same segment values for all
+    running code and for all running soft on this system.
+    -----------------------------------------------------
+
