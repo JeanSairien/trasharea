@@ -1,0 +1,122 @@
+			   
+   _____		   
+  |    	|		   
+  | CPU |      [SYSTEM BUS]
+  |__ __|     /
+    | |	     / 	    ________ 
+    | |_____/______|	    | 
+    |  ____________  Memory | 
+    | |		   |________|
+   _| |_________ 
+  |    	       	|
+  | I/O Devices |
+  |_____________|
+ 
+
+######################################################################
+ 
+ General Purpose Registers:
+ -------------------------
+  _________________________________________
+ |     |     |     |     |     |     |     |
+ | EAX | EBX | ECX | ESI | EDI | ESP | EBP |
+ |_____|_____|_____|_____|_____|_____|_____|
+
+ o EAX: Accumulator register: storing operands and data result
+ o EBX: Base register: pointer to data
+ o ECX: Counter Register: Loop operations
+ o EDX: Data Register (I/O pointer)
+ o ESI/EDI: Data Pointer Registers for mem operation
+ o ESP: Stack Pointer Register: stack pointer, follow stack
+ o EBP: Stack Data Pointer Register
+       		  	  	      
+ Segment Registers:	  	      
+ -----------------     	       	      
+  _____________________________	
+ |     	       	       	       |
+ | CS | DS | SS | ES | FS | GS |
+ |_____________________________|
+       	       	  	       
+ o CS: Count Segment
+ o DS: Data Segment
+ o SS: Stack Segment 
+   		  	       
+ Instruction Pointer Register: 
+ ----------------------------
+  _____		  	     
+ |     	  Most important for reverse engeenering
+   EIP |	   	     
+  _____|	   	     
+       	       	       	     
+  		   
+ Control Registers:
+ ----------------- 
+  _____________________________ 
+ |  	     | 	       	 |     |
+ | CR0 | CR1 | CR2 | CR3 | CR4 |
+ |_____|___________|___________|
+ 				
+######################################################################
+					  
+ 0 1 2 3 4 5 6 7 8 9 a b c d e f 0 1 2 3 4 5 6 7 8 9 a b c d e f
+ | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+ f  -------------------------- 0 f --------------------------- 0
+ 31 ---------------------------- 15 -------------------------- 0
+  _____________________________________________________________
+ |					       		       |
+ |     	       	       	      EAX	       		       |
+ |_____________________________________________________________|
+				 |     	       	       	       |
+				 |	       AX      	       |
+				 |_____________________________|
+				 |     	        |      	       |
+				 |      AH      |     AL       |
+				 |______________|______________|
+
+######################################################################
+
+ Virtual Mem Model:
+ -----------------
+
+ o Same Virtual Memory for all process
+ o 
+
+ Program Memory:	
+ --------------		
+  ____________ 0xBFFFFFFFF (High Mem to Low Mem)
+ |	      |	      	  			
+ | Stack      | => store function arguments and local variables
+ |____________|	       	  				       
+ |     	      |	   	       				       
+ | Unused Mem | => 	       				       
+ |____________|	   	       			
+ |     	      |	   	       			
+ | Heap       | => Dynamic Memory (e.g. malloc())
+ |____________|	       	       			 
+ |  	      |	       	       	       	       	 
+ | .bss	      |	=> Unitilialized Data		
+ |____________|		       	     		
+ |     	      |		       	     		
+ | .data      |	=> Initialized Data  		
+ |____________|	       	       	     		
+ |	      | 	       	   		
+ | .text      |	=> Program Code	   		
+ |____________|		    			
+     	       0x80480000      	       	       	
+     	       		    			
+       	       		    
+######################################################################
+			    
+ Stack is a LIFO (Last In First Out):
+ -----------------------------------
+  ____________  High	    
+ |    	      |	 |     	 PUSH: Push values onto the Stack
+ | 0xAAAAAAAA |	 |     	       	       	       	       	 
+ |____________|	 |     	 POP: Remove the topmost value from the stack
+ | 	      |	 | 	       	       	       	       	       	     
+ | 0x10203040 |	 | 	 ESP: Should point to top of Stack
+ |____________|<--- ESP	       	       	       	       	  
+ |     	      |	 |   |	   ^   	
+ |	      |	 |   |Push | Pop
+ |____________|	 V   V	   |
+		Low
