@@ -46,6 +46,15 @@ function tmux () {                ###################################
       return 1
    fi
 
+   # You are root?! No way, you can't launch tmux!
+   # Why? Because tmux can share your session...
+   if [[ $(whoami) == "root" ]]
+   then
+      printf "You should not use tmux with root account...\n"
+      printf "Please use your user account. Thanks.\n"
+      return 1
+   fi
+
    # if tmux server run for default user, attach it
    # compatible with tmux option via $* special variable
    if (pgrep -u$(whoami) tmux 2>&1 > /dev/null)
