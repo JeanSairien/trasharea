@@ -1,0 +1,59 @@
+function tmux () {                ###################################
+                                  # Small tmux function for load    #
+                                  # already opened session. Only    #
+                                  # for bashrc. If you use it with  #
+                                  # another shell, please remove    #
+                                  # "function" before tmux          #
+                                  # declaration                     #
+                                  ###################################
+
+   # Check default tmux path.
+   # Default installation path /usr/bin/tmux
+   if [ -x /usr/bin/tmux ]
+   then
+      TMUX="/usr/bin/tmux"
+
+   # Another path (UNIX) /usr/local/bin/tmux
+   elif [ -x /usr/local/bin/tmux ]
+   then
+      TMUX="/usr/local/bin/tmux"
+
+   # Not the better place... /bin/tmux
+   elif [ -x /bin/tmux ]
+   then
+      TMUX="/bin/tmux"
+
+   # else I return error code with message.
+   else
+      printf "Tmux is not on this system. Please install it first\n"
+
+      # On redhat
+      if [[ $(uname) =~ "Linux" ]] && [ -r /etc/redhat-release ]
+      then
+         printf "\t # yum install tmux\n"
+
+      # On Debian
+      elif [[ $(uname) =~ "Linux" ]] && [ -r /etc/debian_version ]
+      then
+         printf "\t # apt-get instal tmux\n"
+
+      # On *BSD
+      elif [[ $(uname) =~ "BSD" ]]
+      then
+         printf "\t # pkg_add tmux\n"
+      fi
+
+      return 1
+   fi
+
+   # if tmux server run for default user, attach it
+   # compatible with tmux option via $* special variable
+   if (pgrep -u$(whoami) tmux 2>&1 > /dev/null)
+   then 
+      $TMUX $* attach
+
+   # else I launch a new tmux session with passed argument
+   else 
+      $TMUX $*
+   fi
+}
