@@ -155,32 +155,96 @@ _pkg () {
 	    ;;
 
         delete|remove) 
-	    COMPREPLY=() && \
-		return 0 ;;
+	    COMPREPLY=(
+		'(-y)-n[Assume yes when asked for confirmation]'
+		'(-n)-y[Assume no (dry run) for confirmations]'
+		'-f[Forces packages to be removed]'
+		'(-g -x -X)-a[Process all packages]'
+		'(-x -X -a)-g[Process packages that matches glob]'
+		'(-g -X -a)-x[Process packages that matches regex]'
+		'(-g -x -a)-X[Process packages that matches extended regex]'
+		'*:Package:_pkg_installed'
+	    )
+	    return 0 
+	    ;;
 
         fetch) 
-	    COMPREPLY=() && \
-		return 0 ;;
+	    COMPREPLY=(
+		'-y[Assume yes when asked for confirmation]'
+		'-L[Do not try to update the repository metadata]'
+		'-q[Be quiet]'
+		'(-g -x -X)-a[Process all packages]'
+		'(-x -X -a)-g[Process packages that matches glob]'
+		'(-g -X -a)-x[Process packages that matches regex]' 
+		'(-g -x -a)-X[Process packages that matches extended regex]'
+		'*:Available packages:_pkg_available'
+	    )
+	    return 0 
+	    ;;
 
         help) 
 	    COMPREPLY=() && \
 		return 0 ;;
 
         info) 
-	    COMPREPLY=() && \
-		return 0 ;;
+	    COMPREPLY=(
+		'(-e -d -r -l -o -p -D)-f[Displays full information]'
+		'(-f -d -r -l -o -p -D)-e[Returns 0 if <pkg-name> is installed]'
+		'(-e -f -r -l -o -p -D)-d[Displays the dependencies]'
+		'(-e -d -f -l -o -p -D)-r[Displays the reverse dependencies]'
+		'(-e -d -r -f -o -p -D)-l[Displays all files]'
+		'(-e -d -r -l -f -p -D)-o[Displays origin]'
+		'(-e -d -r -l -o -f -D)-p[Displays prefix]'
+		'(-e -d -r -l -o -p -f)-D[Displays message]'
+		'-q[Be quiet]'
+		'(-g -x -X -F)-a[Process all packages]'
+		'(-x -X -a -F)-g[Process packages that matches glob]'
+		'(-g -X -a -F)-x[Process packages that matches regex]'
+		'(-g -x -a -F)-X[Process packages that matches extended regex]'
+		'(-g -x -X -a)-F[Process the specified package]'
+		'*:Package:_pkg_installed'
+	    )
+	    return 0 
+	    ;;
 
         install) 
-	    COMPREPLY=() && \
-		return 0 ;;
+	    COMPREPLY=(
+		'(-y)-n[Assume yes when asked for confirmation]'
+		'(-n)-y[Assume no (dry run) for confirmations]'
+		'-f[Force reinstallation if needed]'
+		'-R[Reinstall every package depending on matching expressions]'
+		'-L[Do not try to update the repository metadata]'
+		'(-x -X)-g[Process packages that matches glob]'
+		'(-g -X)-x[Process packages that matches regex]'
+		'(-g -x)-X[Process packages that matches extended regex]'
+		'*:Available packages:_pkg_available'
+	    )
+	    return 0 
+	    ;;
 
         query) 
-	    COMPREPLY=() && \
-		return 0 ;;
+	    COMPREPLY=(
+		'(-g -x -X -F -e)-a[Process all packages]'
+		'(-x -X -a -F -e)-g[Process packages that matches glob]'
+		'(-g -X -a -F -e)-x[Process packages that matches regex]'
+		'(-g -x -a -F -e)-X[Process packages that matches extended regex]'
+		'(-g -x -X -a -F)-e[Process packages that matches the evaluation]'
+		'(-g -x -X -a -e)-F[Process the specified package]'
+		':Ouput format:'
+	    )
+	    return 0 
+	    ;;
 
         register) 
-	    COMPREPLY=() && \
-		return 0 ;;
+	    COMPREPLY=(
+		'-l[registered as a legacy format]'
+		'-d[mark the package as an automatic dependency]'
+		'-f[packing list file]'
+		'-m[metadata directory]'
+		'-a[ABI]'
+		'-i[input path (aka root directory)]'
+	    )
+	    return 0 ;;
 
         repo) 
 	    COMPREPLY=() && \
