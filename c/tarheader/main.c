@@ -213,6 +213,7 @@ main (int argc, char **argv)
   printf("gid:      %s\n", gid);
   printf("size:     %s\n", size);
   printf("mtime:    %s\n", mtime);
+  printf("chksum:   %s\n", chksum);
   printf("typeflag: %d\n", typeflag);
   printf("linkname: %s\n", linkname);
   printf("magic:    %s\n", magic);
@@ -222,6 +223,7 @@ main (int argc, char **argv)
   printf("devmajor: %s\n", devmajor);
   printf("devminor: %s\n", devminor);
   printf("prefix:   ");
+
   for ( i=1 ; i<=155 ; i++ ){
     printf("%x", prefix[i]);
     if ( (i%40)==0 )
