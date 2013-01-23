@@ -47,7 +47,7 @@
 int
 main (int argc, char **argv) 
 {
-  int c;
+  int ret, c;
   void *ptr;
   FILE *file;
 
@@ -195,10 +195,16 @@ main (int argc, char **argv)
   i=0;
   while (i<155) {
     c=getc(file);
-    linkname[i]=c;
+    prefix[i]=c;
     i++;
   }
   prefix[155]='\0';
+
+  ret = fclose(file);
+  if ( ret < 0 ) {
+    printf("error: file cannot close.\n");
+    exit(1);
+  }
 
   /* Print information get with the header */
   printf("name:     %s\n", name);
@@ -215,10 +221,11 @@ main (int argc, char **argv)
   printf("gname:    %s\n", gname);
   printf("devmajor: %s\n", devmajor);
   printf("devminor: %s\n", devminor);
-
-  /*  printf("prefix:   ");
-      for ( i=0 ; i<155 ; i++ )
-      printf("%x ", prefix[i]);
-      printf("\n");  
-  */
+  printf("prefix:   ");
+  for ( i=1 ; i<=155 ; i++ ){
+    printf("%x", prefix[i]);
+    if ( (i%40)==0 )
+      printf("\n          ");
+  }
+  printf("\n");  
 }
