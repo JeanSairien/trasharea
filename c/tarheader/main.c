@@ -47,26 +47,28 @@
 int
 main (int argc, char **argv) 
 {
-  int ret, c;
+  unsigned int ret, c;
   void *ptr;
   FILE *file;
 
-  char name[101];               /*   0 */
-  char mode[9];                 /* 100 */
-  char uid[9];                  /* 108 */
-  char gid[8];                  /* 116 */
-  char size[13];                /* 124 */
-  char mtime[13];               /* 136 */
-  char chksum[9];               /* 148 */
-  char typeflag;                /* 156 */
-  char linkname[101];           /* 157 */
-  char magic[7];                /* 257 */
-  char version[3];              /* 263 */
-  char uname[33];               /* 265 */
-  char gname[33];               /* 297 */
-  char devmajor[9];             /* 329 */
-  char devminor[9];             /* 337 */
-  char prefix[156];             /* 345 */
+  struct header {
+    char name[101];               /*   0 */
+    char mode[9];                 /* 100 */
+    char uid[9];                  /* 108 */
+    char gid[8];                  /* 116 */
+    char size[13];                /* 124 */
+    char mtime[13];               /* 136 */
+    char chksum[9];               /* 148 */
+    char typeflag;                /* 156 */
+    char linkname[101];           /* 157 */
+    char magic[7];                /* 257 */
+    char version[3];              /* 263 */
+    char uname[33];               /* 265 */
+    char gname[33];               /* 297 */
+    char devmajor[9];             /* 329 */
+    char devminor[9];             /* 337 */
+    char prefix[156];             /* 345 */
+  } struct_file;
 
   /* Return error if no target tar file */
   if ( argc > 1 )
@@ -80,125 +82,125 @@ main (int argc, char **argv)
   int i=0;
   while ( i<100 ) {
     c=getc(file);
-    name[i]=c;
+    struct_file.name[i]=c;
     i++;
   }
-  name[100]='\0';
+  struct_file.name[100]='\0';
 
   i=0;
   while ( i<8 ) {
     c=getc(file);
-    mode[i]=c;
+    struct_file.mode[i]=c;
     i++;
   }
-  mode[8]='\0'; 
+  struct_file.mode[8]='\0'; 
 
   i=0;
   while (i<8) {
     c=getc(file);
-    uid[i]=c;
+    struct_file.uid[i]=c;
     i++;
   }
-  uid[8]='\0';
+  struct_file.uid[8]='\0';
 
   i=0;
   while (i<8) {
     c=getc(file);
-    gid[i]=c;
+    struct_file.gid[i]=c;
     i++;
   }
-  gid[8]='\0';
+  struct_file.gid[8]='\0';
 
   i=0;
   while (i<12) {
     c=getc(file);
-    size[i]=c;
+    struct_file.size[i]=c;
     i++;
   }
-  size[12]='\0';
+  struct_file.size[12]='\0';
 
   i=0;
   while (i<12) {
     c=getc(file);
-    mtime[i]=c;
+    struct_file.mtime[i]=c;
     i++;
   }
-  mtime[12]='\0';
+  struct_file.mtime[12]='\0';
 
   i=0;
   while (i<8) {
     c=getc(file);
-    chksum[i]=c;
+    struct_file.chksum[i]=c;
     i++;
   }
-  chksum[8]='\0';
+  struct_file.chksum[8]='\0';
 
   c=getc(file);
-  typeflag=c;
+  struct_file.typeflag=c;
   
   i=0;
   while (i<100) {
     c=getc(file);
-    linkname[i]=c;
+    struct_file.linkname[i]=c;
     i++;
   }
-  linkname[100]='\0';
+  struct_file.linkname[100]='\0';
 
   i=0;
   while (i<6) {
     c=getc(file);
-    magic[i]=c;
+    struct_file.magic[i]=c;
     i++;
   }
-  magic[6]='\0';
+  struct_file.magic[6]='\0';
 
   i=0;
   while (i<2) {
     c=getc(file);
-    version[i]=c;
+    struct_file.version[i]=c;
     i++;
   }
-  version[2]='\0';
+  struct_file.version[2]='\0';
 
   i=0;
   while (i<32) {
     c=getc(file);
-    uname[i]=c;
+    struct_file.uname[i]=c;
     i++;
   }
-  uname[32]='\0';
+  struct_file.uname[32]='\0';
 
   i=0;
   while (i<32) {
     c=getc(file);
-    gname[i]=c;
+    struct_file.gname[i]=c;
     i++;
   }
-  gname[32]='\0';
+  struct_file.gname[32]='\0';
 
   i=0;
   while (i<8) {
     c=getc(file);
-    devmajor[i]=c;
+    struct_file.devmajor[i]=c;
     i++;
   }
-  devmajor[8]='\0';
+  struct_file.devmajor[8]='\0';
 
   i=0;
   while (i<8) {
     c=getc(file);
-    devminor[i]=c;
+    struct_file.devminor[i]=c;
     i++;
   }
-  devminor[8]='\0';
+  struct_file.devminor[8]='\0';
 
   i=0;
   while (i<155) {
     c=getc(file);
-    prefix[i]=c;
+    struct_file.prefix[i]=c;
     i++;
   }
-  prefix[155]='\0';
+  struct_file.prefix[155]='\0';
 
   ret = fclose(file);
   if ( ret < 0 ) {
@@ -207,25 +209,25 @@ main (int argc, char **argv)
   }
 
   /* Print information get with the header */
-  printf("name:     %s\n", name);
-  printf("mode:     %s\n", mode);
-  printf("uid:      %s\n", uid);
-  printf("gid:      %s\n", gid);
-  printf("size:     %s\n", size);
-  printf("mtime:    %s\n", mtime);
-  printf("chksum:   %s\n", chksum);
-  printf("typeflag: %d\n", typeflag);
-  printf("linkname: %s\n", linkname);
-  printf("magic:    %s\n", magic);
-  printf("version:  %s\n", version);
-  printf("uname:    %s\n", uname);
-  printf("gname:    %s\n", gname);
-  printf("devmajor: %s\n", devmajor);
-  printf("devminor: %s\n", devminor);
+  printf("name:     %s\n", struct_file.name);
+  printf("mode:     %s\n", struct_file.mode);
+  printf("uid:      %s\n", struct_file.uid);
+  printf("gid:      %s\n", struct_file.gid);
+  printf("size:     %s\n", struct_file.size);
+  printf("mtime:    %s\n", struct_file.mtime);
+  printf("chksum:   %s\n", struct_file.chksum);
+  printf("typeflag: %d\n", struct_file.typeflag);
+  printf("linkname: %s\n", struct_file.linkname);
+  printf("magic:    %s\n", struct_file.magic);
+  printf("version:  %s\n", struct_file.version);
+  printf("uname:    %s\n", struct_file.uname);
+  printf("gname:    %s\n", struct_file.gname);
+  printf("devmajor: %s\n", struct_file.devmajor);
+  printf("devminor: %s\n", struct_file.devminor);
   printf("prefix:   ");
 
   for ( i=1 ; i<=155 ; i++ ){
-    printf("%x", prefix[i]);
+    printf("%x", struct_file.prefix[i]);
     if ( (i%40)==0 )
       printf("\n          ");
   }
