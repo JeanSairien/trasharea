@@ -58,20 +58,31 @@ _pkg_available () {
 ######################################################################
 
 _pkgng_add () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=()
     lopts=()
+
     small_info="Registers a package and installs it on the system"
     large_info=""
 }
 
 _pkgng_audit () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=('-F' '-q')
     lopts=()
+
     small_info="Reports vulnerable packages"
     large_info=""
 }
 
 _pkgng_autoremove () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=()
     lopts=()
     small_info="Removes orphan packages"
@@ -79,6 +90,9 @@ _pkgng_autoremove () {
 }
 
 _pkgng_backup () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=('-r' '-d')
     lopts=('-r[Restore the local package database]' 
            '-d[Dumps the local package database]')
@@ -88,6 +102,9 @@ _pkgng_backup () {
 }
 
 _pkgng_check () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=('-B' '-d' '-r' '-s' '-v' '-g' '-x' '-X' '-a')
     lopts=()
     small_info="Checks for missing dependencies and database consistency"
@@ -95,6 +112,9 @@ _pkgng_check () {
 }
 
 _pkgng_clean () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=()
     lopts=()
     small_info="Cleans old packages from the cache"
@@ -102,6 +122,9 @@ _pkgng_clean () {
 }
 
 _pkgng_convert () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=()
     lopts=()
     small_info="Convert database from/to pkgng"
@@ -109,6 +132,9 @@ _pkgng_convert () {
 }
 
 _pkgng_create () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=('-r' '-m' '-f' '-o' '-g' '-x' '-X' '-a')
     lopts=()
     small_info="Creates software package distributions"
@@ -116,6 +142,9 @@ _pkgng_create () {
 }
 
 _pkgng_delete () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=('-y' '-n' '-f' '-g' '-x' '-X' '-a')
     lopts=()
     small_info="Deletes packages from the database and the system"
@@ -123,6 +152,9 @@ _pkgng_delete () {
 }
 
 _pkgng_fetch () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=('-y' '-L' '-q' '-g' '-x' '-X' '-a')
     lopts=()
     small_info="Fetches packages from a remote repository"
@@ -130,6 +162,9 @@ _pkgng_fetch () {
 }
 
 _pkgng_help () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=()
     lopts=()
     small_info="Displays help information"
@@ -137,6 +172,9 @@ _pkgng_help () {
 }
 
 _pkgng_info () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=('-e' '-d' '-r' '-l' '-o' '-p' '-D' 
           '-f' '-q' '-g' '-x' '-X' '-F' '-a')
     lopts=()
@@ -145,6 +183,9 @@ _pkgng_info () {
 }
 
 _pkgng_install () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=('-y' '-n' '-f' '-R' '-L' '-x' '-X' '-g')
     lopts=()
     small_info="Installs packages from remote package repositories"
@@ -152,6 +193,9 @@ _pkgng_install () {
 }
 
 _pkgng_query () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=('-g' '-x' '-X' '-F' '-e' '-a')
     lopts=()
     small_info="Queries information about installed packages"
@@ -159,6 +203,9 @@ _pkgng_query () {
 }
 
 _pkgng_register () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=('-l' '-d' '-f' '-m' '-a' '-i')
     lopts=()
     small_info="Registers a package into the local database"
@@ -166,6 +213,9 @@ _pkgng_register () {
 }
 
 _pkgng_remove () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=()
     lopts=()
     small_info="Deletes packages from the database and the system"
@@ -173,6 +223,9 @@ _pkgng_remove () {
 }
 
 _pkgng_repo () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=()
     lopts=()
     small_info="Creates a package repository catalogue"
@@ -180,6 +233,9 @@ _pkgng_repo () {
 }
 
 _pkgng_rquery () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=('-g' '-x' '-X' '-e' '-a')
     lopts=()
     small_info="Queries information in repository catalogues"
@@ -187,6 +243,9 @@ _pkgng_rquery () {
 }
 
 _pkgng_search () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=('-x' '-X' '-g')
     lopts=()
     small_info="Performs a search of package repository catalogues"
@@ -194,6 +253,9 @@ _pkgng_search () {
 }
 
 _pkgng_set () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=('-o' '-A' '-y' '-g' '-x' '-X' '-a')
     lopts=('(-o)-A[Mark as automatic or not]'
            '(-A)-o[Change the origin]'
@@ -208,6 +270,9 @@ _pkgng_set () {
 }
 
 _pkgng_shell () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=()
     lopts=('-q[Be quiet]'
            '(-l)-r[Display stats only for the local package database]'
@@ -218,6 +283,9 @@ _pkgng_shell () {
 }
 
 _pkgng_shlib () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=()
     lopts=('-f[Force updating]'
            '-q[Be quiet]')
@@ -227,6 +295,9 @@ _pkgng_shlib () {
 }
 
 _pkgng_stats () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=()
     lopts=()
     small_info="Displays package database statistics"
@@ -234,6 +305,9 @@ _pkgng_stats () {
 }
 
 _pkgng_update () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=()
     lopts=()
     small_info="Updates package repository catalogues"
@@ -241,6 +315,9 @@ _pkgng_update () {
 }
 
 _pkgng_updating () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=()
     lopts=()
     small_info="Displays UPDATING information for a package"
@@ -248,6 +325,9 @@ _pkgng_updating () {
 }
 
 _pkgng_upgrade () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=()
     lopts=()
     small_info="Performs upgrades of packaged software distributions"
@@ -255,6 +335,9 @@ _pkgng_upgrade () {
 }
 
 _pkgng_version () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=()
     lopts=('(-P -R)-I[Use INDEX file]'
            '(-R -I)-P[Force checking against the ports tree]'
@@ -270,6 +353,9 @@ _pkgng_version () {
 }
 
 _pkgng_which () {
+    local cur prev opts lopts
+    COMPREPLY=()
+
     opts=()
     lopts=()
     small_info="Displays which package installed a specific file"
