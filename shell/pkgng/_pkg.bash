@@ -53,16 +53,131 @@ _pkgng_add () {
     true
 }
 
-_pkgng_audit () {}
-_pkgng_autoremove () {}
-_pkgng_backup () {}
-_pkgng_check () {}
-_pkgng_clean () {}
-_pkgng_create () {}
-_pkgng_delete () {}
-_pkgng_fetch () {}
-_pkgng_help () {}
-_pkgng_ () {}
+_pkgng_audit () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_autoremove () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_backup () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_check () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_clean () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_create () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_delete () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_fetch () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_help () {
+    small_info=""
+    large_info=""
+}
+_pkgng_install () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_query () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_register () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_remove () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_repo () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_rquery () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_search () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_set () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_shell () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_shlib () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_stats () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_update () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_updating () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_upgrade () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_version () {
+    small_info=""
+    large_info=""
+}
+
+_pkgng_which () {
+    small_info=""
+    large_info=""
+}
+
+
 _pkg () {
 
     local cur prev opts lopts
