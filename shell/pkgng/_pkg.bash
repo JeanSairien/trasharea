@@ -40,6 +40,7 @@
 ######################################################################
 # Global function (generate dynamic package list e.g.)               #
 ######################################################################
+
 _pkg_installed () {
     pkg query "%n-%v"
 }
@@ -55,191 +56,203 @@ _pkg_available () {
 ######################################################################
 # pkgng subfunction for pkg subcommand.                              #
 ######################################################################
+
 _pkgng_add () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Registers a package and installs it on the system"
     large_info=""
 }
 
 _pkgng_audit () {
-    opts=""
+    opts=('-F' '-q')
     lopts=""
-    small_info=""
+    small_info="Reports vulnerable packages"
     large_info=""
 }
 
 _pkgng_autoremove () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Removes orphan packages"
     large_info=""
 }
 
 _pkgng_backup () {
-    opts=""
-    lopts=""
-    small_info=""
+    opts=('-r' 
+          '-d')
+    lopts=('-r[Restore the local package database]' 
+           '-d[Dumps the local package database]')
+
+    small_info="Backs-up and restores the local package database"
     large_info=""
 }
 
 _pkgng_check () {
-    opts=""
+    opts=('-B' '-d' '-r' '-s' '-v' '-g' '-x' '-X' '-a')
     lopts=""
-    small_info=""
+    small_info="Checks for missing dependencies and database consistency"
     large_info=""
 }
 
 _pkgng_clean () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Cleans old packages from the cache"
     large_info=""
 }
 
 _pkgng_convert () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Convert database from/to pkgng"
     large_info=""
 }
 
 _pkgng_create () {
-    opts=""
+    opts=('-r' '-m' '-f' '-o' '-g' '-x' '-X' '-a')
     lopts=""
-    small_info=""
+    small_info="Creates software package distributions"
     large_info=""
 }
 
 _pkgng_delete () {
-    opts=""
+    opts=('-y' '-n' '-f' '-g' '-x' '-X' '-a')
     lopts=""
-    small_info=""
+    small_info="Deletes packages from the database and the system"
     large_info=""
 }
 
 _pkgng_fetch () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Fetches packages from a remote repository"
     large_info=""
 }
 
 _pkgng_help () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Displays help information"
     large_info=""
 }
+
+_pkgng_info () {
+    opts=""
+    lopts=""
+    small_info="Displays information about installed packages"
+    large_info=""
+}
+
 _pkgng_install () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Installs packages from remote package repositories"
     large_info=""
 }
 
 _pkgng_query () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Queries information about installed packages"
     large_info=""
 }
 
 _pkgng_register () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Registers a package into the local database"
     large_info=""
 }
 
 _pkgng_remove () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Deletes packages from the database and the system"
     large_info=""
 }
 
 _pkgng_repo () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Creates a package repository catalogue"
     large_info=""
 }
 
 _pkgng_rquery () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Queries information in repository catalogues"
     large_info=""
 }
 
 _pkgng_search () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Performs a search of package repository catalogues"
     large_info=""
 }
 
 _pkgng_set () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Modifies information about packages in the local database"
     large_info=""
 }
 
 _pkgng_shell () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Opens a debug shell"
     large_info=""
 }
 
 _pkgng_shlib () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Displays which packages link against a specific shared library"
     large_info=""
 }
 
 _pkgng_stats () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Displays package database statistics"
     large_info=""
 }
 
 _pkgng_update () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Updates package repository catalogues"
     large_info=""
 }
 
 _pkgng_updating () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Displays UPDATING information for a package"
     large_info=""
 }
 
 _pkgng_upgrade () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Performs upgrades of packaged software distributions"
     large_info=""
 }
 
 _pkgng_version () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Displays the versions of installed packages"
     large_info=""
 }
 
 _pkgng_which () {
     opts=""
     lopts=""
-    small_info=""
+    small_info="Displays which package installed a specific file"
     large_info=""
 }
 
@@ -247,6 +260,7 @@ _pkgng_which () {
 # Main function for completion, only for "pkg" command. Other        #
 # subcommand use function like _pkgng_[subfunction].                 #
 ######################################################################
+
 _pkg () {
 
     local cur prev opts lopts
