@@ -97,6 +97,13 @@ _pkgng_clean () {
     large_info=""
 }
 
+_pkgng_convert () {
+    opts=""
+    lopts=""
+    small_info=""
+    large_info=""
+}
+
 _pkgng_create () {
     opts=""
     lopts=""
@@ -263,6 +270,7 @@ _pkg () {
             'backup[Backs-up and restores the local package database]'
             'check[Checks for missing dependencies and database consistency]'
             'clean[Cleans old packages from the cache]'
+            'convert[Convert database from/to pkgng]'
             'create[Creates software package distributions]'
             'delete[Deletes packages from the database and the system]'
             'fetch[Fetches packages from a remote repository]'
@@ -332,6 +340,12 @@ _pkg () {
         clean) 
 	    return 0 ;;
 	
+        convert)
+            # _arguments -s \
+            # '-r[Revert conversion]' \
+            # return 0
+            return 0;;
+
         create) 
 	    COMPREPLY=(
 		'-r[Root directory] -/'
