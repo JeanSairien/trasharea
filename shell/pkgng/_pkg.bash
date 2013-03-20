@@ -37,6 +37,9 @@
 #                                                                    #
 ######################################################################
 
+######################################################################
+# Global function (generate dynamic package list e.g.)               #
+######################################################################
 _pkg_installed () {
     pkg query "%n-%v"
 }
@@ -49,135 +52,194 @@ _pkg_available () {
     pkg rquery "%n-%v"
 }
 
+######################################################################
+# pkgng subfunction for pkg subcommand.                              #
+######################################################################
 _pkgng_add () {
-    true
+    opts=""
+    lopts=""
+    small_info=""
+    large_info=""
 }
 
 _pkgng_audit () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_autoremove () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_backup () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_check () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_clean () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_create () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_delete () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_fetch () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_help () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 _pkgng_install () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_query () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_register () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_remove () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_repo () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_rquery () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_search () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_set () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_shell () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_shlib () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_stats () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_update () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_updating () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_upgrade () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_version () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
 _pkgng_which () {
+    opts=""
+    lopts=""
     small_info=""
     large_info=""
 }
 
-
+######################################################################
+# Main function for completion, only for "pkg" command. Other        #
+# subcommand use function like _pkgng_[subfunction].                 #
+######################################################################
 _pkg () {
 
     local cur prev opts lopts
@@ -228,7 +290,8 @@ _pkg () {
 
  	add) 
 	    COMPREPLY=( $(compgen -A file *.t?z ) ) && \
-		return 0 ;;
+	    return 0 
+            ;;
 
         audit) 
 	    COMPREPLY=( 
@@ -236,7 +299,8 @@ _pkg () {
 		'-q[Quiet]'
 		$(compgen -F _pkg_installed) 
 	    )
-	    return 0 ;;
+	    return 0 
+            ;;
 
         autoremove) 
 	    COMPREPLY=( $(compgen) ) && \
