@@ -35,6 +35,10 @@
 # interpreted as representing official policies, either expressed or #
 # implied, of the FreeBSD Project.                                   #
 #                                                                    #
+# ================================================================== #
+#                                                                    #
+# Usage: put "source _pkg.bash" into ~/.bashrc or /etc/bash.bashrc.  #
+#                                                                    #
 ######################################################################
 
 ######################################################################
@@ -672,4 +676,4 @@ _pkg () {
     COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
 }
 
-complete -D -F _pkg pkg
+complete -F _pkg pkg
