@@ -49,6 +49,20 @@ _pkg_available () {
     pkg rquery "%n-%v"
 }
 
+_pkgng_add () {
+    true
+}
+
+_pkgng_audit () {}
+_pkgng_autoremove () {}
+_pkgng_backup () {}
+_pkgng_check () {}
+_pkgng_clean () {}
+_pkgng_create () {}
+_pkgng_delete () {}
+_pkgng_fetch () {}
+_pkgng_help () {}
+_pkgng_ () {}
 _pkg () {
 
     local cur prev opts lopts
