@@ -62,33 +62,39 @@ _pkg_available () {
 ######################################################################
 
 _pkgng_add () {
-    local cur prev opts lopts
-    COMPREPLY=()
-
-    opts=()
-    lopts=()
+    opts=('')
+    lopts=('')
 
     small_info="Registers a package and installs it on the system"
     large_info=""
+
+    COMPREPLY=($(compgen -A file *.t?z ))
+
 }
 
+# need modification!!!
 _pkgng_audit () {
     local cur prev opts lopts
-    COMPREPLY=()
 
     opts=('-F' '-q')
-    lopts=()
+    lopts=('-F[Fetch the database before checking.]'
+           '-q[Quiet]')
 
     small_info="Reports vulnerable packages"
     large_info=""
+
+    COMPREPLY=( 
+        $(compgen -W `_pkg_installed`)
+    )
 }
 
 _pkgng_autoremove () {
     local cur prev opts lopts
     COMPREPLY=()
 
-    opts=()
-    lopts=()
+    opts=('-y' '-n')
+    lopts=('(-y)-n[Assume yes when asked for confirmation]'
+           '(-n)-y[Assume no (dry run) for confirmations]')
     small_info="Removes orphan packages"
     large_info=""
 }
@@ -110,7 +116,16 @@ _pkgng_check () {
     COMPREPLY=()
 
     opts=('-B' '-d' '-r' '-s' '-v' '-g' '-x' '-X' '-a')
-    lopts=()
+    lopts=('-B[reanalyse SHLIBS of installed packages]' 
+           '-d[check for and install missing dependencies]'
+           '-r[recompute sizes and checksums of installed]'
+           '-s[find invalid checksums]'
+           '-v[Be verbose]'
+           '(-g -x -X)-a[Process all packages]'
+           '(-x -X -a)-g[Process packages that matches glob]'
+           '(-g -X -a)-x[Process packages that matches regex]'
+           '(-g -x -a)-X[Process packages that matches extended regex]')
+
     small_info="Checks for missing dependencies and database consistency"
     large_info=""
 }
@@ -119,8 +134,9 @@ _pkgng_clean () {
     local cur prev opts lopts
     COMPREPLY=()
 
-    opts=()
-    lopts=()
+    opts=('')
+    lopts=('')
+
     small_info="Cleans old packages from the cache"
     large_info=""
 }
@@ -129,8 +145,9 @@ _pkgng_convert () {
     local cur prev opts lopts
     COMPREPLY=()
 
-    opts=()
-    lopts=()
+    opts=('-r')
+    lopts=('-r[Revert conversion]')
+
     small_info="Convert database from/to pkgng"
     large_info=""
 }
@@ -140,7 +157,15 @@ _pkgng_create () {
     COMPREPLY=()
 
     opts=('-r' '-m' '-f' '-o' '-g' '-x' '-X' '-a')
-    lopts=()
+    lopts=('-r[Root directory]'
+           '-m[Manifest directory]'
+           '-f[format]'
+           '-o[Ouput directory]'
+           '(-g -x -X)-a[Process all packages]'
+           '(-x -X -a)-g[Process packages that matches glob]'
+           '(-g -X -a)-x[Process packages that matches regex]'
+           '(-g -x -a)-X[Process packages that matches extended regex]')
+
     small_info="Creates software package distributions"
     large_info=""
 }
@@ -150,7 +175,14 @@ _pkgng_delete () {
     COMPREPLY=()
 
     opts=('-y' '-n' '-f' '-g' '-x' '-X' '-a')
-    lopts=()
+    lopts=('(-y)-n[Assume yes when asked for confirmation]'
+           '(-n)-y[Assume no (dry run) for confirmations]'
+           '-f[Forces packages to be removed]'
+           '(-g -x -X)-a[Process all packages]'
+           '(-x -X -a)-g[Process packages that matches glob]'
+           '(-g -X -a)-x[Process packages that matches regex]'
+           '(-g -x -a)-X[Process packages that matches extended regex]')
+
     small_info="Deletes packages from the database and the system"
     large_info=""
 }
@@ -160,7 +192,14 @@ _pkgng_fetch () {
     COMPREPLY=()
 
     opts=('-y' '-L' '-q' '-g' '-x' '-X' '-a')
-    lopts=()
+    lopts=('-y[Assume yes when asked for confirmation]' 
+           '-L[Do not try to update the repository metadata]' 
+           '-q[Be quiet]' 
+           '(-g -x -X)-a[Process all packages]' 
+           '(-x -X -a)-g[Process packages that matches glob]'
+           '(-g -X -a)-x[Process packages that matches regex]'
+           '(-g -x -a)-X[Process packages that matches extended regex]')
+
     small_info="Fetches packages from a remote repository"
     large_info=""
 }
@@ -169,8 +208,9 @@ _pkgng_help () {
     local cur prev opts lopts
     COMPREPLY=()
 
-    opts=()
-    lopts=()
+    opts=('')
+    lopts=('')
+
     small_info="Displays help information"
     large_info=""
 }
@@ -181,7 +221,21 @@ _pkgng_info () {
 
     opts=('-e' '-d' '-r' '-l' '-o' '-p' '-D' 
           '-f' '-q' '-g' '-x' '-X' '-F' '-a')
-    lopts=()
+    lopts=('(-e -d -r -l -o -p -D)-f[Displays full information]' 
+           '(-f -d -r -l -o -p -D)-e[Returns 0 if <pkg-name> is installed]' 
+           '(-e -f -r -l -o -p -D)-d[Displays the dependencies]' 
+           '(-e -d -f -l -o -p -D)-r[Displays the reverse dependencies]' 
+           '(-e -d -r -f -o -p -D)-l[Displays all files]' 
+           '(-e -d -r -l -f -p -D)-o[Displays origin]' 
+           '(-e -d -r -l -o -f -D)-p[Displays prefix]' 
+           '(-e -d -r -l -o -p -f)-D[Displays message]' 
+           '-q[Be quiet]' 
+           '(-g -x -X -F)-a[Process all packages]' 
+           '(-x -X -a -F)-g[Process packages that matches glob]'
+           '(-g -X -a -F)-x[Process packages that matches regex]' 
+           '(-g -x -a -F)-X[Process packages that matches extended regex]'
+           '(-g -x -X -a)-F[Process the specified package]')
+
     small_info="Displays information about installed packages"
     large_info=""
 }
@@ -420,19 +474,9 @@ _pkg () {
     # switch on second arguments
     case "${prev}" in 
 
- 	add) 
-	    COMPREPLY=( $(compgen -A file *.t?z ) ) && \
-	    return 0 
-            ;;
+ 	add) _pkgng_add && return 0;;
 
-        audit) 
-	    COMPREPLY=( 
-		'-F[Fetch the database before checking.]'
-		'-q[Quiet]'
-		$(compgen -F _pkg_installed) 
-	    )
-	    return 0 
-            ;;
+        audit) _pkgng_audit && return 0;;
 
         autoremove) 
 	    COMPREPLY=( $(compgen) ) && \
@@ -580,6 +624,9 @@ _pkg () {
         repo) 
 	    COMPREPLY=() && \
 		return 0 ;;
+
+	remove) 
+	    ;;
 
         rquery) 
 	    COMPREPLY=(
