@@ -1,0 +1,12 @@
+Testing sharp comment...
+# hi
+# I am a comment with a sharp
+
+Testing exclamation mark comment...
+! hi 
+! I am a comment an exclamation mark
+
+Testing double slash comment...
+// hi
+// I am a comment with double slash
+
