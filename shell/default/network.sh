@@ -33,60 +33,54 @@
 ######################################################################
 
 ######################################################################
-# Default function for shell script for parsing some types of files. #
-# You can use all function with pipe or with a file on first         #
-# argument.                                                          #
+# ethernet function                                                  #
 ######################################################################
 
-# load default local command for "print"
-. ./standard.sh
-
-remove_personal_comment () {
-    print "Work in progress..."
-    return 1 
-}
-
-remove_sharp_comment () {
-    FILENAME="$1"
-    IFS=$'\n'
-    for line in $(cat ${FILENAME})
-    do
-	print "${line}" \
-	    | ${COMMAND_SED} "/\#.*/d"
-    done
-    return 0
-}
-
-remove_exclam_comment () {
-    FILENAME="$1"
-    IFS=$'\n'
-    for line in $(cat ${FILENAME})
-    do
-	print "${line}" \
-	    | ${COMMAND_SED} "/\!.*/d"
-    done
-    return 0
-}
-
-remove_all_comment () {
-    FILENAME="$1"
-    IFS=$'\n'
-    for line in $(cat ${FILENAME})
-    do
-	print "${line}" \
-	    | ${COMMAND_SED} -e "/\!.*/d" \
-	                     -e "/\#.*/d" \
-	                     -e "/\/\/.*/d" 
-    done
-    return 0
-}
-
-parse_colon () {
-    print "Work in progress..."
+ethernet_random () {
+    print "work in progress..."
     return 1
 }
 
-parse_comma () {
-    print "Work in progress"
+######################################################################
+# ipv4 function                                                      #
+######################################################################
+
+ipv4_random () {
+    print "work in progress..."
+    return 1
+
+    FIELD_ONE="" # 0..255
+    FIELD_TWO="" # 0..255
+    FIELD_THR="" # 0..255
+    FIELD_FOU="" # 0..255
+
+    print "${FIELD_ONE}.${FIELD_TWO}.${FIELD_THR}.${FIELD_FOU}"
+}
+
+######################################################################
+# ipv6 function                                                      #
+######################################################################
+
+ipv6_random () {
+    print "work in progress..."
+    return 1
+}
+
+######################################################################
+# port function                                                      #
+######################################################################
+
+port_random () {
+    print "work in progress"
+    return 1
+}
+
+port_random_admin () {
+    print "work in progress"
+    return 1
+}
+
+port_random_range () {
+    print "work in progress"
     return 1
 }
