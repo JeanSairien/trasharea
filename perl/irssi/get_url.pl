@@ -30,7 +30,7 @@ our $VERSION = '1.01';
       license     => 'FreeBSD',
     );
 
-my $log_file = "/home/dem/.irssi/link.log";
+my $log_file = "~/.irssi/link.log";
 
 # regex taken from http://daringfireball.net/2010/07/improved_regex_for_matching_urls
 my $url_regex = qr((?i)\b((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’])));
