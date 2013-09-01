@@ -73,8 +73,6 @@ sub init_database () {
     }
 }
 
-sub generate_date () {}
-
 sub store_url_log ($$$$) {
     my ($server, $chan, $nick, $url) = @_;
 }
@@ -83,10 +81,10 @@ sub store_url_sqlite ($$$$) {
     my ($server, $chan, $nick, $url) = @_;
 
     # delete not secure characters
-    $server =~ s/(\'|\"|\`|\)|\(|\[|\]|--)//g;
-    $chan =~ s/(\'|\"|\`|\)|\(|\[|\]|--)//g;
-    $nick =~ s/(\'|\"|\`|\)|\(|\[|\]|--)//g;
-    $url =~ s/(\'|\"|\`|\)|\(|\[|\]|--)//g;
+    $server =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
+    $chan =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g; 
+    $nick =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
+    $url =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
 
     # set date
     my $current_time =  strftime("%Y-%m-%d %H:%M:%S",localtime);
@@ -138,7 +136,98 @@ sub store_url_sqlite ($$$$) {
     $res = $dbi->execute();
 }
 
-sub generate_report () {}
+sub store_url_sqlite_v2 ($$$$) {
+    my ($server, $chan, $nick, $url) = @_;
+
+    # delete not secure characters
+    $server =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
+    $chan =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g; 
+    $nick =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
+    $url =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
+
+    # v0.2 - new function: parse link for path, hostname, and proto
+    my @link = cut_url($url);
+	
+    # set date
+    my $current_time =  strftime("%Y-%m-%d %H:%M:%S",localtime);
+
+    # default recursive request
+    my %request = ( 'chanid'   => "(SELECT id FROM chan WHERE chan='".$chan."')",
+		    'serverid' => "(SELECT id FROM server WHERE server='".$server."')"
+	);
+
+    # 0: open sqlite database with foreign_keys=ON ! It's very
+    #    important!
+    my $dbh = DBI->connect("DBI:SQLite:dbname=link.log","","");
+    my $dbi = $dbh->do('PRAGMA foreign_keys = ON');
+    my $res;
+
+    # 1: check if server exist with: 
+    #       SELECT COUNT(*) FROM (SELECT server FROM server WHERE
+    #       server='$server_name');
+    #    if not exist (result != 1):
+    #       INSERT INTO server VALUES (NULL, '$server_name');
+    $dbi = $dbh->prepare("SELECT COUNT(*) FROM server WHERE server='".$server."'");
+    $res = $dbi->execute();
+    if ( $dbi->fetchrow_array < 1 ) {
+	$dbi = $dbh->prepare("INSERT INTO server VALUES (NULL, '".$server."')");
+	$dbi->execute();
+    }
+
+    # 2: 
+    $dbi = $dbh->prepare("SELECT COUNT(*) FROM chan 
+                                          WHERE chan='".$chan."' 
+                                          AND id_server=(SELECT id FROM server WHERE server='".$server."')");
+    $res = $dbi->execute();
+    if ( $dbi->fetchrow_array < 1) {
+	$dbi =$dbh->prepare("INSERT INTO chan VALUES (NULL, '".$chan."',
+                          (SELECT id FROM server WHERE server='".$server."'))");
+	$dbi->execute();
+    }
+    
+}
+
+sub cut_url ($) {
+    my @url;
+    my $proto = my $hostname = my $path = $_[0];
+
+    # 1: parsing proto by default http://.
+    if ( $proto =~ /:\/{1,}.*/) {
+        $proto =~ s/:\/{1,}.*/:\/\//;
+    }
+    else {
+        $proto="http://";
+    }
+
+    # 2: parsing hostname.
+    if ( $hostname =~ /(.*:\/\/|)/) {
+	print_d "hostname:".$hostname;
+	$hostname =~ s/$proto//;
+	$hostname =~ s/\/.*$//;
+	print_d "hostname:".$hostname;
+    }
+
+    # 3: parsing path.
+    if (!($path =~ s/$proto// && 
+	  $path =~ s/$hostname// && 
+	  $path =~ /\S/)) {
+	$path='NULL';
+    }
+
+    # 4: return @url array with $proto, 
+    #    $hostname, and $path.
+    @url = ($proto, $hostname, $path);
+    return @url;
+}
+
+sub generate_report_html () {
+    # 1: configure report date
+    print "Work in progress... \n";
+}
+
+sub generate_report_text () {
+    print "Work in progress...\n";
+}
 
 Irssi::signal_add_first('message public', \&get_url);
 
