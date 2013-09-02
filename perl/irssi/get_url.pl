@@ -165,25 +165,57 @@ sub store_url_sqlite_v2 ($$$$) {
     # 1: check if server exist with: 
     #       SELECT COUNT(*) FROM (SELECT server FROM server WHERE
     #       server='$server_name');
-    #    if not exist (result != 1):
+    #    if not exist (result<1):
     #       INSERT INTO server VALUES (NULL, '$server_name');
     $dbi = $dbh->prepare("SELECT COUNT(*) FROM server WHERE server='".$server."'");
-    $res = $dbi->execute();
+    $dbi->execute();
     if ( $dbi->fetchrow_array < 1 ) {
 	$dbi = $dbh->prepare("INSERT INTO server VALUES (NULL, '".$server."')");
 	$dbi->execute();
     }
 
-    # 2: 
+    # 2: check if chan exist on the server with:
+    #       ...
+    #    if not exist (result<1):
+    #       ...
     $dbi = $dbh->prepare("SELECT COUNT(*) FROM chan 
                                           WHERE chan='".$chan."' 
                                           AND id_server=(SELECT id FROM server WHERE server='".$server."')");
-    $res = $dbi->execute();
+    $dbi->execute();
     if ( $dbi->fetchrow_array < 1) {
 	$dbi =$dbh->prepare("INSERT INTO chan VALUES (NULL, '".$chan."',
                           (SELECT id FROM server WHERE server='".$server."'))");
 	$dbi->execute();
     }
+
+    # 3: check if nick exist on the server and the chan with:
+    #       ...
+    #    if not exist (result<1):
+    #      ...
+    $dbi = $dbh->prepare("SELECT COUNT(*) FROM  nick
+                                          WHERE nick='$nick' AND
+                                                id_chan=(SELECT id   FROM chan   WHERE chan='$chan') AND
+                                                id_server=(SELECT id FROM server WHERE server='$server')");
+    $dbi->execute();
+    if ($dbi->fetchrow_array < 1) {
+	$dbi->prepare("INSERT INTO nick VALUES (NULL,'$nick',
+                                                (SELECT id FROM chan   WHERE chan='$chan'),
+                                                (SELECT id FROM server WHERE server='$server'))");
+	$dbi->execute();
+    }
+
+    # 4:
+    $dbi = $dbh->prepare("SELECT COUNT(*) FROM proto
+                                          WHERE proto='$proto'");
+    $dbi->execute();
+    if ($dbi->fetchrow_array<1) {
+	$dbi->prepare("INSERT INTO proto VALUES (NULL, '$proto')");
+    }
+    # 5:
+
+    # 6:
+
+    # 7:
     
 }
 
@@ -218,6 +250,63 @@ sub cut_url ($) {
     #    $hostname, and $path.
     @url = ($proto, $hostname, $path);
     return @url;
+}
+
+######################################################################
+# sqlite_add functions                                               #
+######################################################################
+sub sqlite_add_server ($) {
+    my $a_server = @_;
+    return 1;
+}
+sub sqlite_add_chan ($$) {
+    my ($a_server, $a_chan) = @_;
+    return 1;
+}
+sub sqlite_add_nick ($$$) {
+    my ($a_server, $a_chan, $a_nick) = @_;
+    return 1;
+}
+sub sqlite_add_proto ($) {
+    my $a_proto = @_;
+    return 1;
+}
+sub sqlite_add_hostname ($) {
+    my $a_hostname = @_;
+    return 1;
+}
+sub sqlite_add_url ($$$) {
+    my ($a_proto, $a_hostname, $a_path) = @_;
+    return 1;
+}
+sub sqlite_add_link ($$$$$$) {
+    my ($a_server, $a_chan, $a_nick, 
+	$a_proto, $a_hostname, $a_path) = @_;
+    return 1;
+}
+
+######################################################################
+# sqlite_check functions                                             #
+######################################################################
+sub sqlite_check_server ($) {
+    my $c_server = @_;
+    return 1;
+}
+sub sqlite_check_chan ($$) {
+    my ($c_server, $c_chan) = @_;
+    return 1;
+}
+sub sqlite_check_nick ($$$) {
+    my ($c_server, $c_chan, $c_nick) = @_;
+    return 1;
+}
+sub sqlite_check_proto ($) {
+    my $c_proto = @_;
+    return 1;
+}
+sub sqlite_check_hostname ($) {
+    my $c_hostname = @_;
+    return 1;
 }
 
 sub generate_report_html () {
