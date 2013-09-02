@@ -53,13 +53,13 @@ DROP TABLE IF EXISTS server;
 -- create table server (contain all server name)
 -- info: need check string size (server<128char)
 CREATE TABLE server ( id     INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
-                      server TEXT UNIQUE NOT NULL
+                      server TEXT    UNIQUE NOT NULL
 );
 
 -- create table chan (contain chan and server)
 -- info: need check string size (chan<64char)
 CREATE TABLE chan   ( id          INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
-                      chan        TEXT UNIQUE,
+                      chan        TEXT    UNIQUE,
                       id_server   INTEGER NOT NULL,
                       FOREIGN KEY (id_server) REFERENCES server(id)
 );
@@ -85,7 +85,7 @@ CREATE TABLE link   ( id          INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
 -- v0.2 - new table nick
 -- info: need check string size (nick<64char)
 CREATE TABLE nick   ( id          INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
-                      nick        TEXT UNIQUE NOT NULL,
+                      nick        TEXT    UNIQUE NOT NULL,
 		      id_chan     INTEGER NOT NULL,
 		      id_server	  INTEGER NOT NULL,
 		      FOREIGN KEY (id_chan)   REFERENCES chan(id),
@@ -98,20 +98,21 @@ CREATE TABLE url   ( id          INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
        	             id_proto    INTEGER,
 		     id_hostname INTEGER,
 		     path        TEXT,
-		     FOREIGN KEY (id_proto) REFERENCES proto(id),
+		     FOREIGN KEY (id_proto)    REFERENCES proto(id),
 		     FOREIGN KEY (id_hostname) REFERENCES hostname(id)
 );
 
 -- 0.2 - new table hostname
 -- info: need check string size (hostname<2048char)
 CREATE TABLE hostname ( id       INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
-                        hostname TEXT UNIQUE
+                        hostname TEXT    UNIQUE
 );
 
 -- v0.2 - new table proto
 -- info: need check string size (proto<12char)
 CREATE TABLE proto ( id    INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
-                     proto TEXT UNIQUE );
+                     proto TEXT    UNIQUE
+);
 
 -- v0.2 - All first line in some table is for unknown value
 INSERT INTO server   VALUES (NULL, 'unknown');
@@ -144,15 +145,19 @@ INSERT INTO proto VALUES (NULL, 'git://');
 -- 	 $proto=https://, $hostname=new.thisisatest.net,
 --	 $path=/path/to/page
 
--- #1 check if $server exist (return >1), if not, add it.
---    $dbi->prepare($CHECK_SERVER)
+-- #1 Check if $server exist (return >1), if not, add it.
+--       $dbi->prepare($CHECK_SERVER)
+--    Before insert $server, please saninitize string
+--    and delete special char (<,>,',",(,),[,]).
 SELECT 'Next values should be 0:';
 SELECT COUNT(*) FROM  server 
        		WHERE server='$server';
 INSERT INTO server VALUES (NULL, '$server');
 
 -- #2 check if $chan exist (return >1), if not, add it.
---    $dbi->prepare($CHECK_CHAN)
+--       $dbi->prepare($CHECK_CHAN)
+--    Before insert $chan, please saninitize string
+--    and delete special char (<,>,',",(,),[,]).
 SELECT 'Next values should be 0:';
 SELECT COUNT(*) FROM chan 
        		WHERE chan='$chan' AND 
@@ -162,7 +167,9 @@ INSERT INTO chan VALUES (NULL,
 			  (SELECT id FROM server WHERE server='$server'));
 
 -- #3 check if nick exist (return >1), if not, add it.
--- dbi->prepare($CHECK_NICK)
+--       dbi->prepare($CHECK_NICK)
+--    Before insert $nick, please saninitize string
+--    and delete special char (<,>,',",(,),[,]).
 SELECT 'Next values should be 0:';
 SELECT COUNT(*) FROM  nick 
        		WHERE nick='$nick' AND
@@ -174,28 +181,38 @@ INSERT INTO nick VALUES (NULL,
 			  (SELECT id FROM server WHERE server='$server'));
 
 -- #4 check if $proto exist (return >1), if not, add it.
--- dbi->prepare($CHECK_PROTO)
+--       dbi->prepare($CHECK_PROTO)
+--    Before insert $proto, please saninitize string
+--    and delete special char (<,>,',",(,),[,]).
 SELECT 'Next values should be 0:';
-SELECT COUNT(*) FROM proto WHERE proto='$proto';
+SELECT COUNT(*) FROM proto 
+       		WHERE proto='$proto';
 INSERT INTO proto VALUES (NULL, '$proto');
 
 -- #5 check if $hostname exist (return >1), if not add it.
---    dbi->prepare($CHECK_HOSTNAME)
+--       dbi->prepare($CHECK_HOSTNAME)
+--    Before insert $hostname, please saninitize string
+--    and delete special char (<,>,',",(,),[,]).
 SELECT 'Next values should be 0:';
-SELECT COUNT(*) FROM hostname WHERE hostname='$hostname';
+SELECT COUNT(*) FROM hostname 
+       		WHERE hostname='$hostname';
 INSERT INTO hostname VALUES (NULL, '$hostname');
 
 -- #6 check if $path exist ( return >1), if not, add it.
---    dbi->prepare($CHECK_PATH)
+--       dbi->prepare($CHECK_PATH)
+--    Before insert $path, please saninitize string
+--    and delete special char (<,>,',",(,),[,]). If $path
+--    contain special char... It's your problem! :P
 SELECT 'Next values should be 0:';
-SELECT COUNT(*) FROM url WHERE path='$path';
+SELECT COUNT(*) FROM url 
+       		WHERE path='$path';
 INSERT INTO url	VALUES (NULL, 
        	    	     	(SELECT id FROM proto    WHERE proto='$proto'),
 			(SELECT id FROM hostname WHERE hostname='$hostname'),
 			'$path');
 
 -- #7 finaly, add $date into link with all info.
--- dbi->prepare($INSERT_LINK)
+--       dbi->prepare($INSERT_LINK)
 INSERT INTO link VALUES (NULL, 
        	    	  	 '$date',
 			 (SELECT id FROM server   WHERE server='$server'),
