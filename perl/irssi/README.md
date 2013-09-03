@@ -15,6 +15,15 @@ This script was tested on CentOS6.4 with :
 * sqlite-3.6.20-1.el6.x86_64
 * irssi-0.8.15-5.el6.x86_64
 
+This script was tested on FreeBSD 9.1 with:
+
+* perl-5.14.2_3
+* p5-DBI-1.623
+* sqlite3-3.7.17_1
+* irssi-0.8.15_5
+
+2013-09-03: v0.2 just works. Need some improvement, but works. :)
+
 2013-09-03: Script is in "Alpha Mode". I test sql schema and this
 	    script is not fully functionnal... v0.1 (first shot) is
 	    ready to work.
