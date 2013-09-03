@@ -36,9 +36,9 @@ my $log_file = "~/.irssi/link.log";
 
 my %global_variables = (
     mode => 'sqlite',
-    log => 'link.log',
+    log => $ENV{'HOME'}.'/.irssi/link.log',
     report => 'html',
-    schema => '~/.irssi/schema.sql'
+    schema => $ENV{'HOME'}.'/.irssi/scripts/schema.sql'
 );
 
 # regex taken from http://daringfireball.net/2010/07/improved_regex_for_matching_urls
@@ -65,7 +65,8 @@ sub get_url {
 
 sub init_database () {
     if ( -f $global_variables{'schema'}) {
-	system("\$(which sqlite3) link.log < ".$global_variables{'schema'});
+	system("\$(which sqlite3)".$global_variables{'log'}.
+	       " < ".$global_variables{'schema'});
     }
     else {
 	print "Where is ".$global_variables{'schema'}
@@ -96,7 +97,7 @@ sub store_url_sqlite ($$$$) {
     
     # 0: open sqlite database with foreign_keys=ON ! It's very
     #    important!
-    my $dbh = DBI->connect("DBI:SQLite:dbname=link.log","","");
+    my $dbh = DBI->connect("DBI:SQLite:dbname=".$global_variables{'log'},"","");
     my $dbi = $dbh->do('PRAGMA foreign_keys = ON');
     my $res;
 
@@ -159,7 +160,7 @@ sub store_url_sqlite_v2 ($$$$) {
 
     # 0: open sqlite database with foreign_keys=ON ! It's very
     #    important!
-    my $dbh = DBI->connect("DBI:SQLite:dbname=link.log","","");
+    my $dbh = DBI->connect("DBI:SQLite:dbname=".$global_variables{'log'},"","");
     my $dbi = $dbh->do('PRAGMA foreign_keys = ON');
     my $res;
 
