@@ -32,8 +32,6 @@ our %IRSSI = (
       license     => 'FreeBSD',
     );
 
-my $log_file = "~/.irssi/link.log";
-
 my %global_variables = (
     mode => 'sqlite',
     log => $ENV{'HOME'}.'/.irssi/link.log',
@@ -44,6 +42,33 @@ my %global_variables = (
 # regex taken from http://daringfireball.net/2010/07/improved_regex_for_matching_urls
 my $url_regex = qr((?i)\b((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’])));
 
+######################################################################
+# prototypes functions                                               #
+######################################################################
+sub cut_url ($)
+sub sqlite_add_server ($$)
+sub sqlite_add_chan ($$$) 
+sub sqlite_add_nick ($$$$) 
+sub sqlite_add_proto ($$) 
+sub sqlite_add_hostname ($$) 
+sub sqlite_add_url ($$$$) 
+sub sqlite_add_link ($$$$$$$) 
+sub sqlite_check_server ($$) 
+sub sqlite_check_chan ($$$) 
+sub sqlite_check_nick ($$$$) 
+sub sqlite_check_proto ($$) 
+sub sqlite_check_hostname ($$) 
+sub sqlite_get_server () 
+sub sqlite_get_chan () 
+sub sqlite_get_nick () 
+sub sqlite_get_proto () 
+sub sqlite_get_hostname () 
+sub sqlite_get_path () 
+sub sqlite_get_url ($) 
+
+######################################################################
+# functions scripts                                                  #
+######################################################################
 sub get_url {
     # split message output
     my ($server, $msg, $nick, $nick_addr, $target) = @_;
@@ -370,6 +395,7 @@ sub sqlite_add_url ($$$$) {
     my $a_request;
     return 1;
 }
+
 sub sqlite_add_link ($$$$$$$) {
     my ($a_dbi, $a_server, $a_chan, $a_nick, 
 	$a_proto, $a_hostname, $a_path) = @_;
@@ -385,7 +411,7 @@ sub sqlite_check_server ($$) {
     my $c_request = "SELECT COUNT(*) 
                      FROM server 
                      WHERE server='".$c_server."'";
-    my $db = DBI->connect($a_dbi,"","");
+    my $db = DBI->connect($c_dbi,"","");
 
     my $db_conn = $db->do('PRAGMA foreign_keys = ON') 
 	or die "check server pragma error.\n";
@@ -398,6 +424,7 @@ sub sqlite_check_server ($$) {
 
     return $db_conn->fetchrow_array;
 }
+
 sub sqlite_check_chan ($$$) {
     my ($c_dbi, $c_server, $c_chan) = @_;
     my $c_request = "SELECT COUNT(*) 
@@ -407,7 +434,7 @@ sub sqlite_check_chan ($$$) {
                                       FROM server 
                                       WHERE server='".$c_server."')";
 
-    my $db = DBI->connect($a_dbi,"","");
+    my $db = DBI->connect($c_dbi,"","");
     my $db_conn = $db->do('PRAGMA foreign_keys = ON')
 	or die "check chan pragma error.\n";
 
@@ -419,6 +446,7 @@ sub sqlite_check_chan ($$$) {
 
     return $db_conn->fetchrow_array;
 }
+
 sub sqlite_check_nick ($$$$) {
     my ($c_dbi, $c_server, $c_chan, $c_nick) = @_;
     my $c_request = "SELECT COUNT(*) 
@@ -431,7 +459,7 @@ sub sqlite_check_nick ($$$$) {
                                       FROM server 
                                       WHERE server='".$c_server."')";
 
-        my $db = DBI->connect($a_dbi,"","");
+        my $db = DBI->connect($c_dbi,"","");
     my $db_conn = $db->do('PRAGMA foreign_keys = ON')
 	or die "check nick pragma error.\n";
 
@@ -450,7 +478,7 @@ sub sqlite_check_proto ($$) {
                      FROM proto
                      WHERE proto='".$c_proto."'";
 
-    my $db = DBI->connect($a_dbi,"","");
+    my $db = DBI->connect($c_dbi,"","");
     my $db_conn = $db->do('PRAGMA foreign_keys = ON')
 	or die "check proto pragma error.\n";
 
@@ -465,10 +493,10 @@ sub sqlite_check_proto ($$) {
 
 sub sqlite_check_hostname ($$) {
     my ($c_dbi, $c_hostname) = @_;
-    my $c_request; = "SELECT COUNT(*) 
+    my $c_request = "SELECT COUNT(*) 
                       FROM hostname
-                      WHERE hostname='".$hostname."'";
-    my $db = DBI->connect($a_dbi,"","");
+                      WHERE hostname='".$c_hostname."'";
+    my $db = DBI->connect($c_dbi,"","");
     my $db_conn = $db->do('PRAGMA foreign_keys = ON')
 	or die "check hostname pragma error.\n";
 
@@ -479,6 +507,40 @@ sub sqlite_check_hostname ($$) {
 	or die "check hostname execute error.\n";
 
     return $db_conn->fetchrow_array;
+}
+
+######################################################################
+# sqlite_get functions                                               #
+######################################################################
+sub sqlite_get_server () {}
+sub sqlite_get_chan () {}
+sub sqlite_get_nick () {}
+sub sqlite_get_proto () {}
+sub sqlite_get_hostname () {}
+sub sqlite_get_path () {}
+sub sqlite_get_url ($) {
+    my $g_dbi = @_;
+    my $g_request  = "SELECT date,server,chan,nick,proto,hostname,path
+                      FROM server,chan,nick,proto,hostname,url,link
+                      WHERE server.id=link.id_server     AND
+                            chan.id=link.id_chan         AND
+                            nick.id=link.id_nick         AND
+                            proto.id=link.id_proto       AND
+                            hostname.id=link.id_hostname AND
+                            url.id=link.id_url";
+
+    my $db = DBI->connect($g_dbi,"","");
+
+    my $db_conn = $db->do('PRAGMA foreign_keys = ON')
+	or die "get url pragma error.\n";
+
+    $db_conn = $db->prepare($c_request)
+	or die "get url prepare request error.\n";
+
+    $db_conn->execute()
+	or die "get url execute error.\n";
+
+    return 1;
 }
 
 ######################################################################
