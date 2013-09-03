@@ -144,6 +144,7 @@ sub store_url_sqlite_v2 ($$$$) {
     $chan =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g; 
     $nick =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
     $url =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
+    my ($proto, $hostname, $path) = cut_url($url);
 
     # v0.2 - new function: parse link for path, hostname, and proto
     my @link = cut_url($url);
@@ -193,30 +194,54 @@ sub store_url_sqlite_v2 ($$$$) {
     #    if not exist (result<1):
     #      ...
     $dbi = $dbh->prepare("SELECT COUNT(*) FROM  nick
-                                          WHERE nick='$nick' AND
-                                                id_chan=(SELECT id   FROM chan   WHERE chan='$chan') AND
-                                                id_server=(SELECT id FROM server WHERE server='$server')");
+                                          WHERE nick='".$nick."' AND
+                                                id_chan=(SELECT id   FROM chan   WHERE chan='".$chan."') AND
+                                                id_server=(SELECT id FROM server WHERE server='".$server."')");
     $dbi->execute();
     if ($dbi->fetchrow_array < 1) {
-	$dbi->prepare("INSERT INTO nick VALUES (NULL,'$nick',
-                                                (SELECT id FROM chan   WHERE chan='$chan'),
-                                                (SELECT id FROM server WHERE server='$server'))");
+	$dbi->prepare("INSERT INTO nick VALUES (NULL,'".$nick."',
+                                                (SELECT id FROM chan   WHERE chan='".$chan."'),
+                                                (SELECT id FROM server WHERE server='".$server."'))");
 	$dbi->execute();
     }
 
-    # 4:
+    # 4: check if proto exist in proto table
     $dbi = $dbh->prepare("SELECT COUNT(*) FROM proto
-                                          WHERE proto='$proto'");
+                                          WHERE proto='".$proto."'");
     $dbi->execute();
     if ($dbi->fetchrow_array<1) {
-	$dbi->prepare("INSERT INTO proto VALUES (NULL, '$proto')");
+	$dbi->prepare("INSERT INTO proto VALUES (NULL, '".$proto."')");
     }
-    # 5:
 
-    # 6:
-
-    # 7:
+    # 5: check if hostname exist in hostname table
+    $dbi = $dbh->prepare("SELECT COUNT(*) FROM hostname WHERE hostname='".$hostname."'");
+    $dbi->execute();
+    if ($dbi->fetchrow_array<1) {
+	$dbi->prepare("INSERT INTO hostname VALUES (NULL, '".$hostname."')");
+	$dbi->execute();
+    }
     
+    # 6: check if path exist in url table
+    $dbi = $dbh->prepare("SELECT COUNT(*) FROM url WHERE path='$path';");
+    $dbi->execute();
+    if ($dbi->fetchrow_array<1) {
+	$dbi->prepare("INSERT INTO url VALUES (NULL,
+                        (SELECT id FROM proto    WHERE proto='".$proto."'),
+                        (SELECT id FROM hostname WHERE hostname='".$hostname."'),
+                        '".$path."')");
+	$dbi->execute();
+    }
+
+    # 7: finally add date into the link table! :)
+    $dbi = $dbh->prepare("INSERT INTO link VALUES (NULL,
+                         '".$date."',
+                         (SELECT id FROM server   WHERE server='".$server."'),
+                         (SELECT id FROM chan     WHERE chan='".$chan."'),
+                         (SELECT id FROM nick     WHERE nick='".$nick."'),
+                         (SELECT id FROM proto    WHERE proto='".$proto."'),
+                         (SELECT id FROM hostname WHERE hostname='".$hostname."'),
+                         (SELECT id FROM url      WHERE path='".$path."'))"); 
+    $dbi->execute();
 }
 
 sub cut_url ($) {
@@ -255,59 +280,97 @@ sub cut_url ($) {
 ######################################################################
 # sqlite_add functions                                               #
 ######################################################################
-sub sqlite_add_server ($) {
-    my $a_server = @_;
+sub sqlite_add_server ($$) {
+    my ($a_dbi, $a_server) = @_;
+    my $a_request;
+    my $db = DBI->connect($a_dbi,"","");
+    my $db_conn = $db->do('PRAGMA foreign_keys = ON');
+#    $db_conn = $db->prepare("SELECT COUNT(*) FROM  server
+#                             WHERE server='".$a_server."'");
+    return $db_conn;
+}
+
+sub sqlite_add_chan ($$$) {
+    my ($a_dbi, $a_server, $a_chan) = @_;
+    my $a_request;
+    my $db = DBI->connect($a_dbi,"","");
+    my $db_conn = $db->do('PRAGMA foreign_keys = ON');
+#    $db_conn = $db->prepare("SELECT COUNT(*) FROM chan
+#           WHERE chan='".$a_chan."' AND
+#           id_server=(SELECT id FROM server WHERE server='".$a_server."')");
+    return $db_conn;
+}
+
+sub sqlite_add_nick ($$$$) {
+    my ($a_dbi, $a_server, $a_chan, $a_nick) = @_;
+    my $a_request;
+    my $db = DBI->connect($a_dbi,"","");
+    my $db_conn = $db->do('PRAGMA foreign_keys = ON');
     return 1;
 }
-sub sqlite_add_chan ($$) {
-    my ($a_server, $a_chan) = @_;
+sub sqlite_add_proto ($$) {
+    my ($a_dbi, $a_proto) = @_;
+    my $a_request;
+    my $db_info = DBI->connect($a_dbi,"","");
+    my $db_conn = $dbh->do('PRAGMA foreign_keys = ON');
     return 1;
 }
-sub sqlite_add_nick ($$$) {
-    my ($a_server, $a_chan, $a_nick) = @_;
+sub sqlite_add_hostname ($$) {
+    my ($a_dbi, $a_hostname) = @_;
+    my $a_request;
     return 1;
 }
-sub sqlite_add_proto ($) {
-    my $a_proto = @_;
+sub sqlite_add_url ($$$$) {
+    my ($a_dbi, $a_proto, $a_hostname, $a_path) = @_;
+    my $a_request;
     return 1;
 }
-sub sqlite_add_hostname ($) {
-    my $a_hostname = @_;
-    return 1;
-}
-sub sqlite_add_url ($$$) {
-    my ($a_proto, $a_hostname, $a_path) = @_;
-    return 1;
-}
-sub sqlite_add_link ($$$$$$) {
-    my ($a_server, $a_chan, $a_nick, 
+sub sqlite_add_link ($$$$$$$) {
+    my ($a_dbi, $a_server, $a_chan, $a_nick, 
 	$a_proto, $a_hostname, $a_path) = @_;
+    my $a_request;
     return 1;
 }
 
 ######################################################################
 # sqlite_check functions                                             #
 ######################################################################
-sub sqlite_check_server ($) {
-    my $c_server = @_;
+sub sqlite_check_server ($$) {
+    my ($c_dbi, $c_server) = @_;
+    my $c_request;
     return 1;
 }
 sub sqlite_check_chan ($$) {
     my ($c_server, $c_chan) = @_;
+    my $c_request;
     return 1;
 }
 sub sqlite_check_nick ($$$) {
     my ($c_server, $c_chan, $c_nick) = @_;
+    my $c_request;
     return 1;
 }
 sub sqlite_check_proto ($) {
     my $c_proto = @_;
+    my $c_request;
     return 1;
 }
 sub sqlite_check_hostname ($) {
     my $c_hostname = @_;
+    my $c_request;
     return 1;
 }
+
+######################################################################
+# report functions                                                   #
+######################################################################
+sub html_html ($) {}
+sub html_header ($) {}
+sub html_body ($) {}
+sub html_table ($) {}
+sub html_tr ($) {}
+sub html_td ($) {}
+sub html_a ($) {}
 
 sub generate_report_html () {
     # 1: configure report date

@@ -172,13 +172,13 @@ INSERT INTO chan VALUES (NULL,
 --    and delete special char (<,>,',",(,),[,]).
 SELECT 'Next values should be 0:';
 SELECT COUNT(*) FROM  nick 
-       		WHERE nick='$nick' AND
-		      id_chan=(SELECT id   FROM chan   WHERE chan='$chan') AND
-		      id_server=(SELECT id FROM server WHERE server='$server');
+WHERE nick='$nick' AND
+id_chan=(SELECT id   FROM chan   WHERE chan='$chan') AND
+id_server=(SELECT id FROM server WHERE server='$server');
 INSERT INTO nick VALUES (NULL, 
-       	    	 	 '$nick', 
-			  (SELECT id FROM chan   WHERE chan='$chan'),
-			  (SELECT id FROM server WHERE server='$server'));
+'$nick', 
+(SELECT id FROM chan   WHERE chan='$chan'),
+(SELECT id FROM server WHERE server='$server'));
 
 -- #4 check if $proto exist (return >1), if not, add it.
 --       dbi->prepare($CHECK_PROTO)
@@ -186,7 +186,7 @@ INSERT INTO nick VALUES (NULL,
 --    and delete special char (<,>,',",(,),[,]).
 SELECT 'Next values should be 0:';
 SELECT COUNT(*) FROM proto 
-       		WHERE proto='$proto';
+WHERE proto='$proto';
 INSERT INTO proto VALUES (NULL, '$proto');
 
 -- #5 check if $hostname exist (return >1), if not add it.
@@ -195,7 +195,7 @@ INSERT INTO proto VALUES (NULL, '$proto');
 --    and delete special char (<,>,',",(,),[,]).
 SELECT 'Next values should be 0:';
 SELECT COUNT(*) FROM hostname 
-       		WHERE hostname='$hostname';
+WHERE hostname='$hostname';
 INSERT INTO hostname VALUES (NULL, '$hostname');
 
 -- #6 check if $path exist ( return >1), if not, add it.
