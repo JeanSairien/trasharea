@@ -223,7 +223,7 @@ INSERT INTO link VALUES (NULL,
 			 (SELECT id FROM url      WHERE path='$path'));
 
 -- #8 if you want all information you need use NATURAL JOIN:
-SELECT server,chan,nick,proto,hostname,path,date
+SELECT date,server,chan,nick,proto,hostname,path
        FROM server,chan,nick,proto,hostname,url,link 
        WHERE server.id=link.id_server     AND 
        	     chan.id=link.id_chan     	  AND
