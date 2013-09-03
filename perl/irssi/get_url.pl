@@ -154,8 +154,12 @@ sub store_url_sqlite_v2 ($$$$) {
     my $current_time =  strftime("%Y-%m-%d %H:%M:%S",localtime);
 
     # default recursive request
-    my %request = ( 'chanid'   => "(SELECT id FROM chan WHERE chan='".$chan."')",
-		    'serverid' => "(SELECT id FROM server WHERE server='".$server."')"
+    my %request = ( 'chanid'   => "(SELECT id 
+                                    FROM chan 
+                                    WHERE chan='".$chan."')",
+		    'serverid' => "(SELECT id 
+                                    FROM server 
+                                    WHERE server='".$server."')"
 	);
 
     # 0: open sqlite database with foreign_keys=ON ! It's very
@@ -169,10 +173,13 @@ sub store_url_sqlite_v2 ($$$$) {
     #       server='$server_name');
     #    if not exist (result<1):
     #       INSERT INTO server VALUES (NULL, '$server_name');
-    $dbi = $dbh->prepare("SELECT COUNT(*) FROM server WHERE server='".$server."'");
+    $dbi = $dbh->prepare("SELECT COUNT(*) 
+                          FROM server 
+                          WHERE server='".$server."'");
     $dbi->execute();
     if ( $dbi->fetchrow_array < 1 ) {
-	$dbi = $dbh->prepare("INSERT INTO server VALUES (NULL, '".$server."')");
+	$dbi = $dbh->prepare("INSERT INTO server 
+                              VALUES (NULL, '".$server."')");
 	$dbi->execute();
     }
 
@@ -180,13 +187,20 @@ sub store_url_sqlite_v2 ($$$$) {
     #       ...
     #    if not exist (result<1):
     #       ...
-    $dbi = $dbh->prepare("SELECT COUNT(*) FROM chan 
-                                          WHERE chan='".$chan."' 
-                                          AND id_server=(SELECT id FROM server WHERE server='".$server."')");
+    $dbi = $dbh->prepare("SELECT COUNT(*) 
+                          FROM chan 
+                          WHERE chan='".$chan."' AND 
+                                id_server=(SELECT id 
+                                           FROM server 
+                                           WHERE server='".$server."')");
     $dbi->execute();
     if ( $dbi->fetchrow_array < 1) {
-	$dbi =$dbh->prepare("INSERT INTO chan VALUES (NULL, '".$chan."',
-                          (SELECT id FROM server WHERE server='".$server."'))");
+	$dbi =$dbh->prepare("INSERT INTO chan 
+                             VALUES (NULL, 
+                                     '".$chan."',
+                                     (SELECT id 
+                                      FROM server 
+                                      WHERE server='".$server."'))");
 	$dbi->execute();
     }
 
@@ -194,55 +208,91 @@ sub store_url_sqlite_v2 ($$$$) {
     #       ...
     #    if not exist (result<1):
     #      ...
-    $dbi = $dbh->prepare("SELECT COUNT(*) FROM  nick
-                                          WHERE nick='".$nick."' AND
-                                                id_chan=(SELECT id   FROM chan   WHERE chan='".$chan."') AND
-                                                id_server=(SELECT id FROM server WHERE server='".$server."')");
+    $dbi = $dbh->prepare("SELECT COUNT(*) 
+                          FROM  nick
+                          WHERE nick='".$nick."' AND
+                                id_chan=(SELECT id 
+                                         FROM chan 
+                                         WHERE chan='".$chan."') AND
+                                id_server=(SELECT id 
+                                           FROM server 
+                                           WHERE server='".$server."')");
     $dbi->execute();
     if ($dbi->fetchrow_array < 1) {
-	$dbi = $dbh->prepare("INSERT INTO nick VALUES (NULL,'".$nick."',
-                                                (SELECT id FROM chan   WHERE chan='".$chan."'),
-                                                (SELECT id FROM server WHERE server='".$server."'))");
+	$dbi = $dbh->prepare("INSERT INTO nick 
+                              VALUES (NULL,
+                                      '".$nick."',
+                                      (SELECT id 
+                                       FROM chan 
+                                       WHERE chan='".$chan."'),
+                                      (SELECT id 
+                                       FROM server 
+                                       WHERE server='".$server."'))");
 	$dbi->execute();
     }
 
     # 4: check if proto exist in proto table
-    $dbi = $dbh->prepare("SELECT COUNT(*) FROM proto
-                                          WHERE proto='".$proto."'");
+    $dbi = $dbh->prepare("SELECT COUNT(*) 
+                          FROM proto
+                          WHERE proto='".$proto."'");
     $dbi->execute();
     if ($dbi->fetchrow_array<1) {
-	$dbi=$dbh->prepare("INSERT INTO proto VALUES (NULL, '".$proto."')");
+	$dbi=$dbh->prepare("INSERT INTO proto 
+                            VALUES (NULL, '".$proto."')");
 	$dbi->execute();
     }
 
     # 5: check if hostname exist in hostname table
-    $dbi = $dbh->prepare("SELECT COUNT(*) FROM hostname WHERE hostname='".$hostname."'");
+    $dbi = $dbh->prepare("SELECT COUNT(*) 
+                          FROM hostname 
+                          WHERE hostname='".$hostname."'");
     $dbi->execute();
     if ($dbi->fetchrow_array<1) {
-	$dbi=$dbh->prepare("INSERT INTO hostname VALUES (NULL, '".$hostname."')");
+	$dbi=$dbh->prepare("INSERT INTO hostname 
+                            VALUES (NULL, '".$hostname."')");
 	$dbi->execute();
     }
     
     # 6: check if path exist in url table
-    $dbi = $dbh->prepare("SELECT COUNT(*) FROM url WHERE path='$path';");
+    $dbi = $dbh->prepare("SELECT COUNT(*) 
+                          FROM url 
+                          WHERE path='$path';");
     $dbi->execute();
     if ($dbi->fetchrow_array<1) {
-	$dbi=$dbh->prepare("INSERT INTO url VALUES (NULL,
-                        (SELECT id FROM proto    WHERE proto='".$proto."'),
-                        (SELECT id FROM hostname WHERE hostname='".$hostname."'),
-                        '".$path."')");
+	$dbi=$dbh->prepare("INSERT INTO url 
+                            VALUES (NULL,
+                                    (SELECT id 
+                                     FROM proto 
+                                     WHERE proto='".$proto."'),
+                                    (SELECT id 
+                                     FROM hostname 
+                                     WHERE hostname='".$hostname."'),
+                                     '".$path."')");
 	$dbi->execute();
     }
 
     # 7: finally add date into the link table! :)
-    $dbi = $dbh->prepare("INSERT INTO link VALUES (NULL,
-                         '".$current_time."',
-                         (SELECT id FROM server   WHERE server='".$server."'),
-                         (SELECT id FROM chan     WHERE chan='".$chan."'),
-                         (SELECT id FROM nick     WHERE nick='".$nick."'),
-                         (SELECT id FROM proto    WHERE proto='".$proto."'),
-                         (SELECT id FROM hostname WHERE hostname='".$hostname."'),
-                         (SELECT id FROM url      WHERE path='".$path."'))"); 
+    $dbi = $dbh->prepare("INSERT INTO link 
+                          VALUES (NULL,
+                                  '".$current_time."',
+                                  (SELECT id 
+                                   FROM server
+                                   WHERE server='".$server."'),
+                                  (SELECT id 
+                                   FROM chan
+                                   WHERE chan='".$chan."'),
+                                  (SELECT id 
+                                   FROM nick 
+                                   WHERE nick='".$nick."'),
+                                  (SELECT id 
+                                   FROM proto 
+                                   WHERE proto='".$proto."'),
+                                  (SELECT id 
+                                   FROM hostname 
+                                   WHERE hostname='".$hostname."'),
+                                  (SELECT id 
+                                   FROM url 
+                                   WHERE path='".$path."'))"); 
     $dbi->execute();
 }
 
@@ -285,8 +335,6 @@ sub sqlite_add_server ($$) {
     my $a_request;
     my $db = DBI->connect($a_dbi,"","");
     my $db_conn = $db->do('PRAGMA foreign_keys = ON');
-#    $db_conn = $db->prepare("SELECT COUNT(*) FROM  server
-#                             WHERE server='".$a_server."'");
     return $db_conn;
 }
 
@@ -295,9 +343,6 @@ sub sqlite_add_chan ($$$) {
     my $a_request;
     my $db = DBI->connect($a_dbi,"","");
     my $db_conn = $db->do('PRAGMA foreign_keys = ON');
-#    $db_conn = $db->prepare("SELECT COUNT(*) FROM chan
-#           WHERE chan='".$a_chan."' AND
-#           id_server=(SELECT id FROM server WHERE server='".$a_server."')");
     return $db_conn;
 }
 
@@ -337,28 +382,103 @@ sub sqlite_add_link ($$$$$$$) {
 ######################################################################
 sub sqlite_check_server ($$) {
     my ($c_dbi, $c_server) = @_;
-    my $c_request;
-    return 1;
+    my $c_request = "SELECT COUNT(*) 
+                     FROM server 
+                     WHERE server='".$c_server."'";
+    my $db = DBI->connect($a_dbi,"","");
+
+    my $db_conn = $db->do('PRAGMA foreign_keys = ON') 
+	or die "check server pragma error.\n";
+
+    $db_conn = $db->prepare($c_request)
+	or die "check server prepare request error.\n";
+
+    $db_conn->execute()
+	or die "check server execute error.\n";
+
+    return $db_conn->fetchrow_array;
 }
-sub sqlite_check_chan ($$) {
-    my ($c_server, $c_chan) = @_;
-    my $c_request;
-    return 1;
+sub sqlite_check_chan ($$$) {
+    my ($c_dbi, $c_server, $c_chan) = @_;
+    my $c_request = "SELECT COUNT(*) 
+                     FROM chan 
+       		     WHERE chan='".$c_chan."' AND 
+       		           id_server=(SELECT id 
+                                      FROM server 
+                                      WHERE server='".$c_server."')";
+
+    my $db = DBI->connect($a_dbi,"","");
+    my $db_conn = $db->do('PRAGMA foreign_keys = ON')
+	or die "check chan pragma error.\n";
+
+    $db_conn = $db->prepare($c_request)
+	or die "check chan prepare request error.\n";
+
+    $db_conn->execute()
+	or die "check chan execute error.\n";
+
+    return $db_conn->fetchrow_array;
 }
-sub sqlite_check_nick ($$$) {
-    my ($c_server, $c_chan, $c_nick) = @_;
-    my $c_request;
-    return 1;
+sub sqlite_check_nick ($$$$) {
+    my ($c_dbi, $c_server, $c_chan, $c_nick) = @_;
+    my $c_request = "SELECT COUNT(*) 
+                     FROM nick 
+                     WHERE nick='".$c_nick."' AND
+                           id_chan=(SELECT id 
+                                    FROM chan
+                                    WHERE chan='".$c_chan."') AND
+                           id_server=(SELECT id 
+                                      FROM server 
+                                      WHERE server='".$c_server."')";
+
+        my $db = DBI->connect($a_dbi,"","");
+    my $db_conn = $db->do('PRAGMA foreign_keys = ON')
+	or die "check nick pragma error.\n";
+
+    $db_conn = $db->prepare($c_request)
+	or die "check nick prepare request error.\n";
+
+    $db_conn->execute()
+	or die "check nick execute error.\n";
+
+    return $db_conn->fetchrow_array;
 }
-sub sqlite_check_proto ($) {
-    my $c_proto = @_;
-    my $c_request;
-    return 1;
+
+sub sqlite_check_proto ($$) {
+    my ($c_dbi, $c_proto) = @_;
+    my $c_request = "SELECT COUNT(*) 
+                     FROM proto
+                     WHERE proto='".$c_proto."'";
+
+    my $db = DBI->connect($a_dbi,"","");
+    my $db_conn = $db->do('PRAGMA foreign_keys = ON')
+	or die "check proto pragma error.\n";
+
+    $db_conn = $db->prepare($c_request)
+	or die "check proto prepare request error.\n";
+
+    $db_conn->execute()
+	or die "check proto execute error.\n";
+
+    return $db_conn->fetchrow_array;
 }
-sub sqlite_check_hostname ($) {
-    my $c_hostname = @_;
-    my $c_request;
-    return 1;
+
+sub sqlite_check_hostname ($$) {
+    my ($c_dbi, $c_hostname) = @_;
+    my $c_request; = "SELECT COUNT(*) 
+                      FROM hostname
+                      WHERE hostname='".$hostname."'";
+    my $db = DBI->connect($a_dbi,"","");
+    my $db_conn = $db->do('PRAGMA foreign_keys = ON')
+	or die "check hostname pragma error.\n";
+
+    $db_conn = $db->prepare($c_request)
+	or die "check hostname prepare request error.\n";
+
+    $db_conn->execute()
+	or die "check hostname execute error.\n";
+
+    return $db_conn->fetchrow_array;
 }
 
 ######################################################################
