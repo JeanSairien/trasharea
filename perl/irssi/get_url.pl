@@ -199,7 +199,6 @@ sub store_url_sqlite_v2 ($$$$) {
                                                 id_server=(SELECT id FROM server WHERE server='".$server."')");
     $dbi->execute();
     if ($dbi->fetchrow_array < 1) {
-	print "$nick - $server - $chan \n";
 	$dbi = $dbh->prepare("INSERT INTO nick VALUES (NULL,'".$nick."',
                                                 (SELECT id FROM chan   WHERE chan='".$chan."'),
                                                 (SELECT id FROM server WHERE server='".$server."'))");
