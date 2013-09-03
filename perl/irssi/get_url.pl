@@ -57,7 +57,7 @@ sub get_url {
         # second check. If one word == URL, print it
         foreach my $parse (@buf) {
             if ( $parse =~ $url_regex ) {
-		store_url_sqlite($server->{'address'}, $target, $nick, $parse);
+		store_url_sqlite_v2($server->{'address'}, $target, $nick, $parse);
             }
         }
     }
@@ -199,7 +199,8 @@ sub store_url_sqlite_v2 ($$$$) {
                                                 id_server=(SELECT id FROM server WHERE server='".$server."')");
     $dbi->execute();
     if ($dbi->fetchrow_array < 1) {
-	$dbi->prepare("INSERT INTO nick VALUES (NULL,'".$nick."',
+	print "$nick - $server - $chan \n";
+	$dbi = $dbh->prepare("INSERT INTO nick VALUES (NULL,'".$nick."',
                                                 (SELECT id FROM chan   WHERE chan='".$chan."'),
                                                 (SELECT id FROM server WHERE server='".$server."'))");
 	$dbi->execute();
@@ -210,14 +211,15 @@ sub store_url_sqlite_v2 ($$$$) {
                                           WHERE proto='".$proto."'");
     $dbi->execute();
     if ($dbi->fetchrow_array<1) {
-	$dbi->prepare("INSERT INTO proto VALUES (NULL, '".$proto."')");
+	$dbi=$dbh->prepare("INSERT INTO proto VALUES (NULL, '".$proto."')");
+	$dbi->execute();
     }
 
     # 5: check if hostname exist in hostname table
     $dbi = $dbh->prepare("SELECT COUNT(*) FROM hostname WHERE hostname='".$hostname."'");
     $dbi->execute();
     if ($dbi->fetchrow_array<1) {
-	$dbi->prepare("INSERT INTO hostname VALUES (NULL, '".$hostname."')");
+	$dbi=$dbh->prepare("INSERT INTO hostname VALUES (NULL, '".$hostname."')");
 	$dbi->execute();
     }
     
@@ -225,7 +227,7 @@ sub store_url_sqlite_v2 ($$$$) {
     $dbi = $dbh->prepare("SELECT COUNT(*) FROM url WHERE path='$path';");
     $dbi->execute();
     if ($dbi->fetchrow_array<1) {
-	$dbi->prepare("INSERT INTO url VALUES (NULL,
+	$dbi=$dbh->prepare("INSERT INTO url VALUES (NULL,
                         (SELECT id FROM proto    WHERE proto='".$proto."'),
                         (SELECT id FROM hostname WHERE hostname='".$hostname."'),
                         '".$path."')");
@@ -234,7 +236,7 @@ sub store_url_sqlite_v2 ($$$$) {
 
     # 7: finally add date into the link table! :)
     $dbi = $dbh->prepare("INSERT INTO link VALUES (NULL,
-                         '".$date."',
+                         '".$current_time."',
                          (SELECT id FROM server   WHERE server='".$server."'),
                          (SELECT id FROM chan     WHERE chan='".$chan."'),
                          (SELECT id FROM nick     WHERE nick='".$nick."'),
@@ -258,10 +260,8 @@ sub cut_url ($) {
 
     # 2: parsing hostname.
     if ( $hostname =~ /(.*:\/\/|)/) {
-	print_d "hostname:".$hostname;
 	$hostname =~ s/$proto//;
 	$hostname =~ s/\/.*$//;
-	print_d "hostname:".$hostname;
     }
 
     # 3: parsing path.
@@ -311,8 +311,8 @@ sub sqlite_add_nick ($$$$) {
 sub sqlite_add_proto ($$) {
     my ($a_dbi, $a_proto) = @_;
     my $a_request;
-    my $db_info = DBI->connect($a_dbi,"","");
-    my $db_conn = $dbh->do('PRAGMA foreign_keys = ON');
+    my $db = DBI->connect($a_dbi,"","");
+    my $db_conn = $db->do('PRAGMA foreign_keys = ON');
     return 1;
 }
 sub sqlite_add_hostname ($$) {
