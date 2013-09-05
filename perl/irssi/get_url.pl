@@ -309,7 +309,7 @@ sub sqlite_add_url ($$$$) {
 }
 
 sub sqlite_add_path ($$$$) {
-    my ($a_dbi, $a_proto, $a_hostname, $a_path);
+    my ($a_dbi, $a_proto, $a_hostname, $a_path) = @_;
 
     $a_proto    =~ s/(\'|\"|\`|\)|\()//g;
     $a_hostname =~ s/(\'|\"|\`|\)|\()//g;
