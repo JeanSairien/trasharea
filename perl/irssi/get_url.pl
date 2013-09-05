@@ -218,15 +218,15 @@ sub sqlite_add_nick ($$$$) {
     $a_chan   =~ s/(\'|\"|\`|\)|\()//g;
     $a_nick   =~ s/(\'|\"|\`|\)|\()//g;
 
-    my $a_request = ("INSERT INTO nick 
-                      VALUES (NULL,
-                              '".$a_nick."',
-                              (SELECT id 
-                               FROM chan 
-                               WHERE chan='".$a_chan."'),
-                              (SELECT id 
-                               FROM server 
-                               WHERE server='".$a_server."'))";
+    my $a_request = "INSERT INTO nick 
+                     VALUES (NULL,
+                             '".$a_nick."',
+                             (SELECT id 
+                              FROM chan 
+                              WHERE chan='".$a_chan."'),
+                             (SELECT id 
+                              FROM server 
+                              WHERE server='".$a_server."'))";
 
     my $db = DBI->connect($a_dbi,"","");
 
@@ -306,6 +306,35 @@ sub sqlite_add_url ($$$$) {
 
     $db_conn->execute()
 	or die "add url execute error.\n";
+}
+
+sub sqlite_add_path ($$$) {
+    my ($a_dbi, $a_proto, $a_hostname, $a_path);
+
+    $a_proto    =~ s/(\'|\"|\`|\)|\()//g;
+    $a_hostname =~ s/(\'|\"|\`|\)|\()//g;
+    $a_path     =~ s/(\'|\"|\`|\)|\()//g;
+
+    my $a_request = "INSERT INTO url
+                     VALUES (NULL, 
+       	    	     	     (SELECT id 
+                              FROM proto
+                              WHERE proto='".$a_proto."'),
+			     (SELECT id 
+                              FROM hostname 
+                              WHERE hostname='".$a_hostname."'),
+			     '".$a_path."')";
+
+    my $db = DBI->connect($a_dbi,"","");
+
+    my $db_conn = $db->do('PRAGMA foreign_keys = ON') 
+	or die "add link pragma error.\n";
+
+    $db_conn = $db->prepare($a_request)
+	or die "add link prepare request error.\n";
+
+    $db_conn->execute()
+	or die "add link execute error.\n";
 }
 
 sub sqlite_add_link ($$$$$$$) {
