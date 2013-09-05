@@ -205,6 +205,7 @@ sub store_url_sqlite_v2 ($$$$) {
 
     # 0: open sqlite database with foreign_keys=ON ! It's very
     #    important!
+    my $db_str = "DBI:SQLite:dbname=".$global_variables{'log'};
     my $dbh = DBI->connect("DBI:SQLite:dbname="
 			   .$global_variables{'log'},"","");
     my $dbi = $dbh->do('PRAGMA foreign_keys = ON');
@@ -215,11 +216,12 @@ sub store_url_sqlite_v2 ($$$$) {
     #       server='$server_name');
     #    if not exist (result<1):
     #       INSERT INTO server VALUES (NULL, '$server_name');
-    $dbi = $dbh->prepare("SELECT COUNT(*) 
-                          FROM server 
-                          WHERE server='".$server."'");
-    $dbi->execute();
-    if ( $dbi->fetchrow_array < 1 ) {
+    #$dbi = $dbh->prepare("SELECT COUNT(*) 
+    #                      FROM server 
+    #                      WHERE server='".$server."'");
+    #$dbi->execute();
+
+    if (sqlite_check_server($db_str, $server)<1) {
 	$dbi = $dbh->prepare("INSERT INTO server 
                               VALUES (NULL, '".$server."')");
 	$dbi->execute();
@@ -229,14 +231,14 @@ sub store_url_sqlite_v2 ($$$$) {
     #       ...
     #    if not exist (result<1):
     #       ...
-    $dbi = $dbh->prepare("SELECT COUNT(*) 
-                          FROM chan 
-                          WHERE chan='".$chan."' AND 
-                                id_server=(SELECT id 
-                                           FROM server 
-                                           WHERE server='".$server."')");
-    $dbi->execute();
-    if ( $dbi->fetchrow_array < 1) {
+    #$dbi = $dbh->prepare("SELECT COUNT(*) 
+    #                      FROM chan 
+    #                      WHERE chan='".$chan."' AND 
+    #                            id_server=(SELECT id 
+    #                                       FROM server 
+    #                                       WHERE server='".$server."')");
+    #$dbi->execute();
+    if ( sqlite_check_chan($db_str, $server, $chan)<1) {
 	$dbi =$dbh->prepare("INSERT INTO chan 
                              VALUES (NULL, 
                                      '".$chan."',
@@ -250,17 +252,18 @@ sub store_url_sqlite_v2 ($$$$) {
     #       ...
     #    if not exist (result<1):
     #      ...
-    $dbi = $dbh->prepare("SELECT COUNT(*) 
-                          FROM  nick
-                          WHERE nick='".$nick."' AND
-                                id_chan=(SELECT id 
-                                         FROM chan 
-                                         WHERE chan='".$chan."') AND
-                                id_server=(SELECT id 
-                                           FROM server 
-                                           WHERE server='".$server."')");
-    $dbi->execute();
-    if ($dbi->fetchrow_array < 1) {
+    #$dbi = $dbh->prepare("SELECT COUNT(*) 
+    #                      FROM  nick
+    #                      WHERE nick='".$nick."' AND
+    #                            id_chan=(SELECT id 
+    #                                     FROM chan 
+    #                                     WHERE chan='".$chan."') AND
+    #                            id_server=(SELECT id 
+    #                                       FROM server 
+    #                                       WHERE server='".$server."')");
+    #$dbi->execute();
+
+    if (sqlite_check_nick($db_str, $server, $chan, $nick)<1) {
 	$dbi = $dbh->prepare("INSERT INTO nick 
                               VALUES (NULL,
                                       '".$nick."',
@@ -274,33 +277,33 @@ sub store_url_sqlite_v2 ($$$$) {
     }
 
     # 4: check if proto exist in proto table
-    $dbi = $dbh->prepare("SELECT COUNT(*) 
-                          FROM proto
-                          WHERE proto='".$proto."'");
-    $dbi->execute();
-    if ($dbi->fetchrow_array<1) {
+    #$dbi = $dbh->prepare("SELECT COUNT(*) 
+    #                      FROM proto
+    #                      WHERE proto='".$proto."'");
+    #$dbi->execute();
+    if (sqlite_check_proto($db_str, $proto)<1) {
 	$dbi=$dbh->prepare("INSERT INTO proto 
                             VALUES (NULL, '".$proto."')");
 	$dbi->execute();
     }
 
     # 5: check if hostname exist in hostname table
-    $dbi = $dbh->prepare("SELECT COUNT(*) 
-                          FROM hostname 
-                          WHERE hostname='".$hostname."'");
-    $dbi->execute();
-    if ($dbi->fetchrow_array<1) {
+    #$dbi = $dbh->prepare("SELECT COUNT(*) 
+    #                      FROM hostname 
+    #                      WHERE hostname='".$hostname."'");
+    #$dbi->execute();
+    if (sqlite_check_hostname($db_str, $hostname)<1) {
 	$dbi=$dbh->prepare("INSERT INTO hostname 
                             VALUES (NULL, '".$hostname."')");
 	$dbi->execute();
     }
     
     # 6: check if path exist in url table
-    $dbi = $dbh->prepare("SELECT COUNT(*) 
-                          FROM url 
-                          WHERE path='$path';");
-    $dbi->execute();
-    if ($dbi->fetchrow_array<1) {
+    #$dbi = $dbh->prepare("SELECT COUNT(*) 
+    #                      FROM url 
+    #                      WHERE path='$path';");
+    #$dbi->execute();
+    if (sqlite_check_path($db_str, $path)<1) {
 	$dbi=$dbh->prepare("INSERT INTO url 
                             VALUES (NULL,
                                     (SELECT id 
@@ -556,6 +559,27 @@ sub sqlite_check_hostname ($$) {
 
     $db_conn->execute()
 	or die "check hostname execute error.\n";
+
+    return $db_conn->fetchrow_array;
+}
+
+sub sqlite_check_path ($$) {
+    my ($c_dbi, $c_path) = @_;
+
+    $c_path =~ s/(\'|\"|\`)//g;
+
+    my $c_request = "SELECT COUNT(*) 
+                      FROM url
+                      WHERE path='".$c_path."'";
+    my $db = DBI->connect($c_dbi,"","");
+    my $db_conn = $db->do('PRAGMA foreign_keys = ON')
+	or die "check path pragma error.\n";
+
+    $db_conn = $db->prepare($c_request)
+	or die "check path prepare request error.\n";
+
+    $db_conn->execute()
+	or die "check path execute error.\n";
 
     return $db_conn->fetchrow_array;
 }
