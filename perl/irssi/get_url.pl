@@ -172,7 +172,8 @@ sub sqlite_add_server ($$) {
     $a_server =~ s/(\'|\"|\`|\)|\()//g;
 
     my $a_request = "INSERT INTO server
-                     VALUES (NULL,'".$a_server."'";
+                     VALUES (NULL,'".$a_server."')";
+
     my $db = DBI->connect($a_dbi,"","");
 
     my $db_conn = $db->do('PRAGMA foreign_keys = ON') 
@@ -328,13 +329,13 @@ sub sqlite_add_path ($$$$) {
     my $db = DBI->connect($a_dbi,"","");
 
     my $db_conn = $db->do('PRAGMA foreign_keys = ON') 
-	or die "add link pragma error.\n";
+	or die "add path pragma error.\n";
 
     $db_conn = $db->prepare($a_request)
-	or die "add link prepare request error.\n";
+	or die "add path prepare request error.\n";
 
     $db_conn->execute()
-	or die "add link execute error.\n";
+	or die "add path execute error.\n";
 }
 
 sub sqlite_add_link ($$$$$$$) {
