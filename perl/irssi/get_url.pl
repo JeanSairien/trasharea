@@ -44,30 +44,6 @@ my %global_variables = (
 my $url_regex = qr((?i)\b((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’])));
 
 ######################################################################
-# prototypes functions                                               #
-######################################################################
-sub cut_url ($)
-sub sqlite_add_server ($$)
-sub sqlite_add_chan ($$$) 
-sub sqlite_add_nick ($$$$) 
-sub sqlite_add_proto ($$) 
-sub sqlite_add_hostname ($$) 
-sub sqlite_add_url ($$$$) 
-sub sqlite_add_link ($$$$$$$) 
-sub sqlite_check_server ($$) 
-sub sqlite_check_chan ($$$) 
-sub sqlite_check_nick ($$$$) 
-sub sqlite_check_proto ($$) 
-sub sqlite_check_hostname ($$) 
-sub sqlite_get_server () 
-sub sqlite_get_chan () 
-sub sqlite_get_nick () 
-sub sqlite_get_proto () 
-sub sqlite_get_hostname () 
-sub sqlite_get_path () 
-sub sqlite_get_url ($) 
-
-######################################################################
 # functions scripts                                                  #
 ######################################################################
 sub get_url {
@@ -609,7 +585,7 @@ sub sqlite_get_url ($) {
     my $db_conn = $db->do('PRAGMA foreign_keys = ON')
 	or die "get url pragma error.\n";
 
-    $db_conn = $db->prepare($c_request)
+    $db_conn = $db->prepare($g_request)
 	or die "get url prepare request error.\n";
 
     $db_conn->execute()
