@@ -79,10 +79,6 @@ sub init_database () {
     }
 }
 
-sub store_url_log ($$$$) {
-    my ($server, $chan, $nick, $url) = @_;
-}
-
 sub store_url_sqlite_v2 ($$$$) {
     my ($server, $chan, $nick, $url) = @_;
 
@@ -95,120 +91,46 @@ sub store_url_sqlite_v2 ($$$$) {
 
     # v0.2 - new function: parse link for path, hostname, and proto
     my @link = cut_url($url);
-	
-    # set date
-    my $current_time =  strftime("%Y-%m-%d %H:%M:%S",localtime);
-
-    # default recursive request
-    my %request = ( 'chanid'   => "(SELECT id 
-                                    FROM chan 
-                                    WHERE chan='".$chan."')",
-		    'serverid' => "(SELECT id 
-                                    FROM server 
-                                    WHERE server='".$server."')"
-	);
 
     # 0: open sqlite database with foreign_keys=ON ! It's very
     #    important!
     my $db_str = "DBI:SQLite:dbname=".$global_variables{'log'};
-    my $dbh = DBI->connect("DBI:SQLite:dbname="
-			   .$global_variables{'log'},"","");
+    my $dbh = DBI->connect($db_str,"","");
     my $dbi = $dbh->do('PRAGMA foreign_keys = ON');
-    my $res;
 
-    # 1: check if server exist with: 
-    #       SELECT COUNT(*) FROM (SELECT server FROM server WHERE
-    #       server='$server_name');
-    #    if not exist (result<1):
-    #       INSERT INTO server VALUES (NULL, '$server_name');
+    # 1: check if server exist
     if (sqlite_check_server($db_str, $server)<1) {
-	$dbi = $dbh->prepare("INSERT INTO server 
-                              VALUES (NULL, '".$server."')");
-	$dbi->execute();
+	sqlite_add_server($db_str, $server);
     }
 
     # 2: check if chan exist on the server with:
-    #       ...
-    #    if not exist (result<1):
-    #       ...
     if ( sqlite_check_chan($db_str, $server, $chan)<1) {
-	$dbi =$dbh->prepare("INSERT INTO chan 
-                             VALUES (NULL, 
-                                     '".$chan."',
-                                     (SELECT id 
-                                      FROM server 
-                                      WHERE server='".$server."'))");
-	$dbi->execute();
+	sqlite_add_chan($db_str, $server, $chan);
     }
 
     # 3: check if nick exist on the server and the chan with:
-    #       ...
-    #    if not exist (result<1):
-    #      ...
     if (sqlite_check_nick($db_str, $server, $chan, $nick)<1) {
-	$dbi = $dbh->prepare("INSERT INTO nick 
-                              VALUES (NULL,
-                                      '".$nick."',
-                                      (SELECT id 
-                                       FROM chan 
-                                       WHERE chan='".$chan."'),
-                                      (SELECT id 
-                                       FROM server 
-                                       WHERE server='".$server."'))");
-	$dbi->execute();
+	sqlite_add_nick($db_str, $server, $chan, $nick);
     }
 
     # 4: check if proto exist in proto table
     if (sqlite_check_proto($db_str, $proto)<1) {
-	$dbi=$dbh->prepare("INSERT INTO proto 
-                            VALUES (NULL, '".$proto."')");
-	$dbi->execute();
+	sqlite_add_proto($db_str, $proto);
     }
 
     # 5: check if hostname exist in hostname table
     if (sqlite_check_hostname($db_str, $hostname)<1) {
-	$dbi=$dbh->prepare("INSERT INTO hostname 
-                            VALUES (NULL, '".$hostname."')");
-	$dbi->execute();
+	sqlite_add_hostname($db_str, $hostname);
     }
     
     # 6: check if path exist in url table
     if (sqlite_check_path($db_str, $path)<1) {
-	$dbi=$dbh->prepare("INSERT INTO url 
-                            VALUES (NULL,
-                                    (SELECT id 
-                                     FROM proto 
-                                     WHERE proto='".$proto."'),
-                                    (SELECT id 
-                                     FROM hostname 
-                                     WHERE hostname='".$hostname."'),
-                                     '".$path."')");
-	$dbi->execute();
+	sqlite_add_path($db_str, $path);
     }
 
     # 7: finally add date into the link table! :)
-    $dbi = $dbh->prepare("INSERT INTO link 
-                          VALUES (NULL,
-                                  '".$current_time."',
-                                  (SELECT id 
-                                   FROM server
-                                   WHERE server='".$server."'),
-                                  (SELECT id 
-                                   FROM chan
-                                   WHERE chan='".$chan."'),
-                                  (SELECT id 
-                                   FROM nick 
-                                   WHERE nick='".$nick."'),
-                                  (SELECT id 
-                                   FROM proto 
-                                   WHERE proto='".$proto."'),
-                                  (SELECT id 
-                                   FROM hostname 
-                                   WHERE hostname='".$hostname."'),
-                                  (SELECT id 
-                                   FROM url 
-                                   WHERE path='".$path."'))"); 
-    $dbi->execute();
+    sqlite_add_link($db_str, $server, $chan, $nick,
+		    $proto, $hostname, $path);
 }
 
 sub cut_url ($) {
@@ -236,8 +158,7 @@ sub cut_url ($) {
 	$path='NULL';
     }
 
-    # 4: return @url array with $proto, 
-    #    $hostname, and $path.
+    # 4: return @url array with $proto, $hostname, and $path.
     @url = ($proto, $hostname, $path);
     return @url;
 }
@@ -390,6 +311,9 @@ sub sqlite_add_url ($$$$) {
 sub sqlite_add_link ($$$$$$$) {
     my ($a_dbi, $a_server, $a_chan, $a_nick, 
 	$a_proto, $a_hostname, $a_path) = @_;
+
+    # set date
+    my $current_time = strftime("%Y-%m-%d %H:%M:%S",localtime);
 
     $a_server   =~ s/(\'|\"|\`|\)|\()//g;
     $a_chan     =~ s/(\'|\"|\`|\)|\()//g;
