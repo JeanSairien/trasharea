@@ -21,7 +21,8 @@ use Irssi::Irc;
 use DBI;
 
 # Original version by shabble:
-# https://github.com/shabble/irssi-scripts/blob/master/url_hilight/url_hilight.pl
+# https://github.com/shabble/irssi-scripts
+#         /blob/master/url_hilight/url_hilight.pl
 
 our $VERSION = '1.01';
 our %IRSSI = (
@@ -82,7 +83,10 @@ sub get_url {
         # second check. If one word == URL, print it
         foreach my $parse (@buf) {
             if ( $parse =~ $url_regex ) {
-		store_url_sqlite_v2($server->{'address'}, $target, $nick, $parse);
+		store_url_sqlite_v2($server->{'address'}, 
+				    $target,
+				    $nick,
+				    $parse);
             }
         }
     }
@@ -116,13 +120,17 @@ sub store_url_sqlite ($$$$) {
     my $current_time =  strftime("%Y-%m-%d %H:%M:%S",localtime);
 
     # default recursive request
-    my %request = ( 'chanid'   => "(SELECT id FROM chan WHERE chan='".$chan."')",
-		    'serverid' => "(SELECT id FROM server WHERE server='".$server."')"
-	);
+    my %request = ( 'chanid'   => "(SELECT id 
+                                    FROM chan 
+                                    WHERE chan='".$chan."')",
+		    'serverid' => "(SELECT id 
+                                    FROM server 
+                                    WHERE server='".$server."')" );
     
     # 0: open sqlite database with foreign_keys=ON ! It's very
     #    important!
-    my $dbh = DBI->connect("DBI:SQLite:dbname=".$global_variables{'log'},"","");
+    my $dbh = DBI->connect("DBI:SQLite:dbname="
+			   .$global_variables{'log'},"","");
     my $dbi = $dbh->do('PRAGMA foreign_keys = ON');
     my $res;
 
@@ -131,10 +139,12 @@ sub store_url_sqlite ($$$$) {
     #       server='$server_name');
     #    if not exist (result != 1):
     #       INSERT INTO server VALUES (NULL, '$server_name');
-    $dbi = $dbh->prepare("SELECT COUNT(*) FROM ".$request{'serverid'});
+    $dbi = $dbh->prepare("SELECT COUNT(*) 
+                          FROM ".$request{'serverid'});
     $res = $dbi->execute();
     if ( $dbi->fetchrow_array < 1 ) {
-	$dbi = $dbh->prepare("INSERT INTO server VALUES (NULL, '".$server."')");
+	$dbi = $dbh->prepare("INSERT INTO server 
+                              VALUES (NULL, '".$server."')");
 	$dbi->execute();
     }
     
@@ -144,10 +154,14 @@ sub store_url_sqlite ($$$$) {
     #    if not exist (result != 1):
     #       INSERT INTO chan VALUES (NULL, '$chan_name', 
     #          (SELECT id FROM server WHERE server='$server_name'));
-    $dbi = $dbh->prepare("SELECT COUNT(*) FROM ".$request{'chanid'});
+    $dbi = $dbh->prepare("SELECT COUNT(*) 
+                          FROM ".$request{'chanid'});
     $res = $dbi->execute();
     if ( $dbi->fetchrow_array < 1 ) {
-	$dbi = $dbh->prepare("INSERT INTO chan VALUES (NULL, '".$chan."',".$request{'serverid'}.")");
+	$dbi = $dbh->prepare("INSERT INTO chan 
+                              VALUES (NULL, '"
+                                      .$chan."',"
+                                      .$request{'serverid'}.")");
 	$dbi->execute();
     }
 
@@ -155,10 +169,12 @@ sub store_url_sqlite ($$$$) {
     #       INSERT INTO link VALUES (NULL, '$current_date', '$nick', 
     #          '$url', (SELECT id FROM chan WHERE chan='$chan_name'),
     #           (SELECT id FROM server WHERE server='$server_name'));
-    $dbi = $dbh->prepare("INSERT INTO link VALUES (NULL, '".$current_time."', '".
-			                                    $nick."','".$url."',".
-			                                    $request{'chanid'}.",".
-			                                    $request{'serverid'}.")");
+    $dbi = $dbh->prepare("INSERT INTO link 
+                          VALUES (NULL, '"
+                                  .$current_time."', '"
+                                  .$nick."','".$url."',"
+                                  .$request{'chanid'}.","
+                                  .$request{'serverid'}.")");
     $res = $dbi->execute();
 }
 
@@ -189,7 +205,8 @@ sub store_url_sqlite_v2 ($$$$) {
 
     # 0: open sqlite database with foreign_keys=ON ! It's very
     #    important!
-    my $dbh = DBI->connect("DBI:SQLite:dbname=".$global_variables{'log'},"","");
+    my $dbh = DBI->connect("DBI:SQLite:dbname="
+			   .$global_variables{'log'},"","");
     my $dbi = $dbh->do('PRAGMA foreign_keys = ON');
     my $res;
 
@@ -357,6 +374,7 @@ sub cut_url ($) {
 ######################################################################
 sub sqlite_add_server ($$) {
     my ($a_dbi, $a_server) = @_;
+    $a_server =~ s/(\'|\"|\`|\)|\()//g;
     my $a_request;
     my $db = DBI->connect($a_dbi,"","");
     my $db_conn = $db->do('PRAGMA foreign_keys = ON');
@@ -365,6 +383,8 @@ sub sqlite_add_server ($$) {
 
 sub sqlite_add_chan ($$$) {
     my ($a_dbi, $a_server, $a_chan) = @_;
+    $a_server =~ s/(\'|\"|\`|\)|\()//g;
+    $a_chan =~ s/(\'|\"|\`|\)|\()//g;
     my $a_request;
     my $db = DBI->connect($a_dbi,"","");
     my $db_conn = $db->do('PRAGMA foreign_keys = ON');
@@ -373,6 +393,9 @@ sub sqlite_add_chan ($$$) {
 
 sub sqlite_add_nick ($$$$) {
     my ($a_dbi, $a_server, $a_chan, $a_nick) = @_;
+    $a_server =~ s/(\'|\"|\`|\)|\()//g;
+    $a_chan =~ s/(\'|\"|\`|\)|\()//g;
+    $a_nick =~ s/(\'|\"|\`|\)|\()//g;
     my $a_request;
     my $db = DBI->connect($a_dbi,"","");
     my $db_conn = $db->do('PRAGMA foreign_keys = ON');
@@ -381,6 +404,7 @@ sub sqlite_add_nick ($$$$) {
 sub sqlite_add_proto ($$) {
     my ($a_dbi, $a_proto) = @_;
     my $a_request;
+    $a_proto =~ s/(\'|\"|\`|\)|\()//g;
     my $db = DBI->connect($a_dbi,"","");
     my $db_conn = $db->do('PRAGMA foreign_keys = ON');
     return 1;
@@ -388,11 +412,15 @@ sub sqlite_add_proto ($$) {
 sub sqlite_add_hostname ($$) {
     my ($a_dbi, $a_hostname) = @_;
     my $a_request;
+    $a_hostname =~ s/(\'|\"|\`|\)|\()//g;
     return 1;
 }
 sub sqlite_add_url ($$$$) {
     my ($a_dbi, $a_proto, $a_hostname, $a_path) = @_;
     my $a_request;
+    $a_proto =~ s/(\'|\"|\`|\)|\()//g;
+    $a_hostname =~ s/(\'|\"|\`|\)|\()//g;
+    $a_path =~ s/(\'|\"|\`|\)|\()//g;
     return 1;
 }
 
@@ -400,6 +428,12 @@ sub sqlite_add_link ($$$$$$$) {
     my ($a_dbi, $a_server, $a_chan, $a_nick, 
 	$a_proto, $a_hostname, $a_path) = @_;
     my $a_request;
+    $a_server =~ s/(\'|\"|\`|\)|\()//g;
+    $a_chan =~ s/(\'|\"|\`|\)|\()//g;
+    $a_nick =~ s/(\'|\"|\`|\)|\()//g;
+    $a_proto =~ s/(\'|\"|\`|\)|\()//g;
+    $a_hostname =~ s/(\'|\"|\`|\)|\()//g;
+    $a_path =~ s/(\'|\"|\`|\)|\()//g;
     return 1;
 }
 
@@ -408,6 +442,8 @@ sub sqlite_add_link ($$$$$$$) {
 ######################################################################
 sub sqlite_check_server ($$) {
     my ($c_dbi, $c_server) = @_;
+    $c_server =~ s/(\'|\"|\`|\)|\()//g;
+
     my $c_request = "SELECT COUNT(*) 
                      FROM server 
                      WHERE server='".$c_server."'";
@@ -427,6 +463,10 @@ sub sqlite_check_server ($$) {
 
 sub sqlite_check_chan ($$$) {
     my ($c_dbi, $c_server, $c_chan) = @_;
+
+    $c_server =~ s/(\'|\"|\`|\)|\()//g;
+    $c_chan   =~ s/(\'|\"|\`|\)|\()//g;
+
     my $c_request = "SELECT COUNT(*) 
                      FROM chan 
        		     WHERE chan='".$c_chan."' AND 
@@ -449,6 +489,11 @@ sub sqlite_check_chan ($$$) {
 
 sub sqlite_check_nick ($$$$) {
     my ($c_dbi, $c_server, $c_chan, $c_nick) = @_;
+
+    $c_server =~ s/(\'|\"|\`|\)|\()//g;
+    $c_chan   =~ s/(\'|\"|\`|\)|\()//g;
+    $c_nick   =~ s/(\'|\"|\`|\)|\()//g;
+
     my $c_request = "SELECT COUNT(*) 
                      FROM nick 
                      WHERE nick='".$c_nick."' AND
@@ -474,6 +519,9 @@ sub sqlite_check_nick ($$$$) {
 
 sub sqlite_check_proto ($$) {
     my ($c_dbi, $c_proto) = @_;
+
+    $c_proto =~ s/(\'|\"|\`|\)|\()//g;
+
     my $c_request = "SELECT COUNT(*) 
                      FROM proto
                      WHERE proto='".$c_proto."'";
@@ -493,6 +541,9 @@ sub sqlite_check_proto ($$) {
 
 sub sqlite_check_hostname ($$) {
     my ($c_dbi, $c_hostname) = @_;
+
+    $c_hostname =~ s/(\'|\"|\`|\)|\()//g;
+
     my $c_request = "SELECT COUNT(*) 
                       FROM hostname
                       WHERE hostname='".$c_hostname."'";
@@ -564,4 +615,3 @@ sub generate_report_text () {
 }
 
 Irssi::signal_add_first('message public', \&get_url);
-
