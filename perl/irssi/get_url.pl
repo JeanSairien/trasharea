@@ -83,77 +83,6 @@ sub store_url_log ($$$$) {
     my ($server, $chan, $nick, $url) = @_;
 }
 
-sub store_url_sqlite ($$$$) {
-    my ($server, $chan, $nick, $url) = @_;
-
-    # delete not secure characters
-    $server =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
-    $chan =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g; 
-    $nick =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
-    $url =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
-
-    # set date
-    my $current_time =  strftime("%Y-%m-%d %H:%M:%S",localtime);
-
-    # default recursive request
-    my %request = ( 'chanid'   => "(SELECT id 
-                                    FROM chan 
-                                    WHERE chan='".$chan."')",
-		    'serverid' => "(SELECT id 
-                                    FROM server 
-                                    WHERE server='".$server."')" );
-    
-    # 0: open sqlite database with foreign_keys=ON ! It's very
-    #    important!
-    my $dbh = DBI->connect("DBI:SQLite:dbname="
-			   .$global_variables{'log'},"","");
-    my $dbi = $dbh->do('PRAGMA foreign_keys = ON');
-    my $res;
-
-    # 1: check if server exist with: 
-    #       SELECT COUNT(*) FROM (SELECT server FROM server WHERE
-    #       server='$server_name');
-    #    if not exist (result != 1):
-    #       INSERT INTO server VALUES (NULL, '$server_name');
-    $dbi = $dbh->prepare("SELECT COUNT(*) 
-                          FROM ".$request{'serverid'});
-    $res = $dbi->execute();
-    if ( $dbi->fetchrow_array < 1 ) {
-	$dbi = $dbh->prepare("INSERT INTO server 
-                              VALUES (NULL, '".$server."')");
-	$dbi->execute();
-    }
-    
-    # 2: check if chan exist with:
-    #       SELECT COUNT(*) FROM (SELECT chan FROM chan WHERE 
-    #       chan='$chan_name');
-    #    if not exist (result != 1):
-    #       INSERT INTO chan VALUES (NULL, '$chan_name', 
-    #          (SELECT id FROM server WHERE server='$server_name'));
-    $dbi = $dbh->prepare("SELECT COUNT(*) 
-                          FROM ".$request{'chanid'});
-    $res = $dbi->execute();
-    if ( $dbi->fetchrow_array < 1 ) {
-	$dbi = $dbh->prepare("INSERT INTO chan 
-                              VALUES (NULL, '"
-                                      .$chan."',"
-                                      .$request{'serverid'}.")");
-	$dbi->execute();
-    }
-
-    # 3: finaly insert link
-    #       INSERT INTO link VALUES (NULL, '$current_date', '$nick', 
-    #          '$url', (SELECT id FROM chan WHERE chan='$chan_name'),
-    #           (SELECT id FROM server WHERE server='$server_name'));
-    $dbi = $dbh->prepare("INSERT INTO link 
-                          VALUES (NULL, '"
-                                  .$current_time."', '"
-                                  .$nick."','".$url."',"
-                                  .$request{'chanid'}.","
-                                  .$request{'serverid'}.")");
-    $res = $dbi->execute();
-}
-
 sub store_url_sqlite_v2 ($$$$) {
     my ($server, $chan, $nick, $url) = @_;
 
@@ -192,11 +121,6 @@ sub store_url_sqlite_v2 ($$$$) {
     #       server='$server_name');
     #    if not exist (result<1):
     #       INSERT INTO server VALUES (NULL, '$server_name');
-    #$dbi = $dbh->prepare("SELECT COUNT(*) 
-    #                      FROM server 
-    #                      WHERE server='".$server."'");
-    #$dbi->execute();
-
     if (sqlite_check_server($db_str, $server)<1) {
 	$dbi = $dbh->prepare("INSERT INTO server 
                               VALUES (NULL, '".$server."')");
@@ -207,13 +131,6 @@ sub store_url_sqlite_v2 ($$$$) {
     #       ...
     #    if not exist (result<1):
     #       ...
-    #$dbi = $dbh->prepare("SELECT COUNT(*) 
-    #                      FROM chan 
-    #                      WHERE chan='".$chan."' AND 
-    #                            id_server=(SELECT id 
-    #                                       FROM server 
-    #                                       WHERE server='".$server."')");
-    #$dbi->execute();
     if ( sqlite_check_chan($db_str, $server, $chan)<1) {
 	$dbi =$dbh->prepare("INSERT INTO chan 
                              VALUES (NULL, 
@@ -228,17 +145,6 @@ sub store_url_sqlite_v2 ($$$$) {
     #       ...
     #    if not exist (result<1):
     #      ...
-    #$dbi = $dbh->prepare("SELECT COUNT(*) 
-    #                      FROM  nick
-    #                      WHERE nick='".$nick."' AND
-    #                            id_chan=(SELECT id 
-    #                                     FROM chan 
-    #                                     WHERE chan='".$chan."') AND
-    #                            id_server=(SELECT id 
-    #                                       FROM server 
-    #                                       WHERE server='".$server."')");
-    #$dbi->execute();
-
     if (sqlite_check_nick($db_str, $server, $chan, $nick)<1) {
 	$dbi = $dbh->prepare("INSERT INTO nick 
                               VALUES (NULL,
@@ -253,10 +159,6 @@ sub store_url_sqlite_v2 ($$$$) {
     }
 
     # 4: check if proto exist in proto table
-    #$dbi = $dbh->prepare("SELECT COUNT(*) 
-    #                      FROM proto
-    #                      WHERE proto='".$proto."'");
-    #$dbi->execute();
     if (sqlite_check_proto($db_str, $proto)<1) {
 	$dbi=$dbh->prepare("INSERT INTO proto 
                             VALUES (NULL, '".$proto."')");
@@ -264,10 +166,6 @@ sub store_url_sqlite_v2 ($$$$) {
     }
 
     # 5: check if hostname exist in hostname table
-    #$dbi = $dbh->prepare("SELECT COUNT(*) 
-    #                      FROM hostname 
-    #                      WHERE hostname='".$hostname."'");
-    #$dbi->execute();
     if (sqlite_check_hostname($db_str, $hostname)<1) {
 	$dbi=$dbh->prepare("INSERT INTO hostname 
                             VALUES (NULL, '".$hostname."')");
@@ -275,10 +173,6 @@ sub store_url_sqlite_v2 ($$$$) {
     }
     
     # 6: check if path exist in url table
-    #$dbi = $dbh->prepare("SELECT COUNT(*) 
-    #                      FROM url 
-    #                      WHERE path='$path';");
-    #$dbi->execute();
     if (sqlite_check_path($db_str, $path)<1) {
 	$dbi=$dbh->prepare("INSERT INTO url 
                             VALUES (NULL,
@@ -353,67 +247,189 @@ sub cut_url ($) {
 ######################################################################
 sub sqlite_add_server ($$) {
     my ($a_dbi, $a_server) = @_;
+
     $a_server =~ s/(\'|\"|\`|\)|\()//g;
-    my $a_request;
+
+    my $a_request = "INSERT INTO server
+                     VALUES (NULL,'".$a_server."'";
     my $db = DBI->connect($a_dbi,"","");
-    my $db_conn = $db->do('PRAGMA foreign_keys = ON');
-    return $db_conn;
+
+    my $db_conn = $db->do('PRAGMA foreign_keys = ON') 
+	or die "add server pragma error.\n";
+
+    $db_conn = $db->prepare($a_request)
+	or die "add server prepare request error.\n";
+
+    $db_conn->execute()
+	or die "add server execute error.\n";
 }
 
 sub sqlite_add_chan ($$$) {
     my ($a_dbi, $a_server, $a_chan) = @_;
+
     $a_server =~ s/(\'|\"|\`|\)|\()//g;
-    $a_chan =~ s/(\'|\"|\`|\)|\()//g;
-    my $a_request;
+    $a_chan   =~ s/(\'|\"|\`|\)|\()//g;
+
+    my $a_request = "INSERT INTO chan 
+                     VALUES (NULL, 
+                             '".$a_chan."',
+                             (SELECT id 
+                              FROM server 
+                              WHERE server='".$a_server."'))";
+
     my $db = DBI->connect($a_dbi,"","");
-    my $db_conn = $db->do('PRAGMA foreign_keys = ON');
-    return $db_conn;
+
+    my $db_conn = $db->do('PRAGMA foreign_keys = ON') 
+	or die "add chan pragma error.\n";
+
+    $db_conn = $db->prepare($a_request)
+	or die "add chan prepare request error.\n";
+
+    $db_conn->execute()
+	or die "add chan execute error.\n";
+
 }
 
 sub sqlite_add_nick ($$$$) {
     my ($a_dbi, $a_server, $a_chan, $a_nick) = @_;
+
     $a_server =~ s/(\'|\"|\`|\)|\()//g;
-    $a_chan =~ s/(\'|\"|\`|\)|\()//g;
-    $a_nick =~ s/(\'|\"|\`|\)|\()//g;
-    my $a_request;
+    $a_chan   =~ s/(\'|\"|\`|\)|\()//g;
+    $a_nick   =~ s/(\'|\"|\`|\)|\()//g;
+
+    my $a_request = ("INSERT INTO nick 
+                      VALUES (NULL,
+                              '".$a_nick."',
+                              (SELECT id 
+                               FROM chan 
+                               WHERE chan='".$a_chan."'),
+                              (SELECT id 
+                               FROM server 
+                               WHERE server='".$a_server."'))";
+
     my $db = DBI->connect($a_dbi,"","");
-    my $db_conn = $db->do('PRAGMA foreign_keys = ON');
-    return 1;
+
+    my $db_conn = $db->do('PRAGMA foreign_keys = ON') 
+	or die "add nick pragma error.\n";
+
+    $db_conn = $db->prepare($a_request)
+	or die "add nick prepare request error.\n";
+
+    $db_conn->execute()
+	or die "add nick execute error.\n";
 }
+
 sub sqlite_add_proto ($$) {
     my ($a_dbi, $a_proto) = @_;
-    my $a_request;
     $a_proto =~ s/(\'|\"|\`|\)|\()//g;
+
+    my $a_request = "INSERT INTO proto
+                     VALUES (NULL, '".$a_proto."')";
+
     my $db = DBI->connect($a_dbi,"","");
-    my $db_conn = $db->do('PRAGMA foreign_keys = ON');
-    return 1;
+
+    my $db_conn = $db->do('PRAGMA foreign_keys = ON') 
+	or die "add proto pragma error.\n";
+
+    $db_conn = $db->prepare($a_request)
+	or die "add proto prepare request error.\n";
+
+    $db_conn->execute()
+	or die "add proto execute error.\n";
 }
+
 sub sqlite_add_hostname ($$) {
     my ($a_dbi, $a_hostname) = @_;
-    my $a_request;
+
     $a_hostname =~ s/(\'|\"|\`|\)|\()//g;
-    return 1;
+
+    my $a_request = "INSERT INTO hostname 
+                     VALUES (NULL, '".$a_hostname."')";
+
+    my $db = DBI->connect($a_dbi,"","");
+
+    my $db_conn = $db->do('PRAGMA foreign_keys = ON') 
+	or die "add hostname pragma error.\n";
+
+    $db_conn = $db->prepare($a_request)
+	or die "add hostname prepare request error.\n";
+
+    $db_conn->execute()
+	or die "add hostname execute error.\n";
 }
+
 sub sqlite_add_url ($$$$) {
     my ($a_dbi, $a_proto, $a_hostname, $a_path) = @_;
-    my $a_request;
-    $a_proto =~ s/(\'|\"|\`|\)|\()//g;
+
+    $a_proto    =~ s/(\'|\"|\`|\)|\()//g;
     $a_hostname =~ s/(\'|\"|\`|\)|\()//g;
-    $a_path =~ s/(\'|\"|\`|\)|\()//g;
-    return 1;
+    $a_path     =~ s/(\'|\"|\`|\)|\()//g;
+
+    my $a_request = "INSERT INTO url 
+                     VALUES (NULL,
+                             (SELECT id 
+                              FROM proto 
+                              WHERE proto='".$a_proto."'),
+                             (SELECT id 
+                              FROM hostname 
+                              WHERE hostname='".$a_hostname."'),
+                             '".$a_path."')";
+
+    my $db = DBI->connect($a_dbi,"","");
+
+    my $db_conn = $db->do('PRAGMA foreign_keys = ON') 
+	or die "add url pragma error.\n";
+
+    $db_conn = $db->prepare($a_request)
+	or die "add url prepare request error.\n";
+
+    $db_conn->execute()
+	or die "add url execute error.\n";
 }
 
 sub sqlite_add_link ($$$$$$$) {
     my ($a_dbi, $a_server, $a_chan, $a_nick, 
 	$a_proto, $a_hostname, $a_path) = @_;
-    my $a_request;
-    $a_server =~ s/(\'|\"|\`|\)|\()//g;
-    $a_chan =~ s/(\'|\"|\`|\)|\()//g;
-    $a_nick =~ s/(\'|\"|\`|\)|\()//g;
-    $a_proto =~ s/(\'|\"|\`|\)|\()//g;
+
+    $a_server   =~ s/(\'|\"|\`|\)|\()//g;
+    $a_chan     =~ s/(\'|\"|\`|\)|\()//g;
+    $a_nick     =~ s/(\'|\"|\`|\)|\()//g;
+    $a_proto    =~ s/(\'|\"|\`|\)|\()//g;
     $a_hostname =~ s/(\'|\"|\`|\)|\()//g;
-    $a_path =~ s/(\'|\"|\`|\)|\()//g;
-    return 1;
+    $a_path     =~ s/(\'|\"|\`|\)|\()//g;
+
+    my $a_request = "INSERT INTO link 
+                     VALUES (NULL,
+                             '".$current_time."',
+                             (SELECT id 
+                              FROM server
+                              WHERE server='".$a_server."'),
+                             (SELECT id 
+                              FROM chan
+                              WHERE chan='".$a_chan."'),
+                             (SELECT id 
+                              FROM nick 
+                              WHERE nick='".$a_nick."'),
+                             (SELECT id 
+                              FROM proto 
+                              WHERE proto='".$a_proto."'),
+                             (SELECT id 
+                              FROM hostname 
+                              WHERE hostname='".$a_hostname."'),
+                             (SELECT id 
+                              FROM url 
+                              WHERE path='".$a_path."'))";
+
+    my $db = DBI->connect($a_dbi,"","");
+
+    my $db_conn = $db->do('PRAGMA foreign_keys = ON') 
+	or die "add link pragma error.\n";
+
+    $db_conn = $db->prepare($a_request)
+	or die "add link prepare request error.\n";
+
+    $db_conn->execute()
+	or die "add link execute error.\n";
 }
 
 ######################################################################
