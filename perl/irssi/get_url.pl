@@ -125,7 +125,7 @@ sub store_url_sqlite_v2 ($$$$) {
     
     # 6: check if path exist in url table
     if (sqlite_check_path($db_str, $path)<1) {
-	sqlite_add_path($db_str, $path);
+	sqlite_add_path($db_str, $proto, $hostname, $path);
     }
 
     # 7: finally add date into the link table! :)
@@ -308,7 +308,7 @@ sub sqlite_add_url ($$$$) {
 	or die "add url execute error.\n";
 }
 
-sub sqlite_add_path ($$$) {
+sub sqlite_add_path ($$$$) {
     my ($a_dbi, $a_proto, $a_hostname, $a_path);
 
     $a_proto    =~ s/(\'|\"|\`|\)|\()//g;
