@@ -104,7 +104,7 @@ sub store_url_sqlite_v2 ($$$$) {
     }
 
     # 2: check if chan exist on the server with:
-    if ( sqlite_check_chan($db_str, $server, $chan)<1) {
+    if (sqlite_check_chan($db_str, $server, $chan)<1) {
 	sqlite_add_chan($db_str, $server, $chan);
     }
 

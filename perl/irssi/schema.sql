@@ -59,7 +59,7 @@ CREATE TABLE server ( id     INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
 -- create table chan (contain chan and server)
 -- info: need check string size (chan<64char)
 CREATE TABLE chan   ( id          INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
-                      chan        TEXT    UNIQUE,
+                      chan        TEXT NOT NULL,
                       id_server   INTEGER NOT NULL,
                       FOREIGN KEY (id_server) REFERENCES server(id)
 );
@@ -85,7 +85,7 @@ CREATE TABLE link   ( id          INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
 -- v0.2 - new table nick
 -- info: need check string size (nick<64char)
 CREATE TABLE nick   ( id          INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
-                      nick        TEXT    UNIQUE NOT NULL,
+                      nick        TEXT    NOT NULL,
 		      id_chan     INTEGER NOT NULL,
 		      id_server	  INTEGER NOT NULL,
 		      FOREIGN KEY (id_chan)   REFERENCES chan(id),
@@ -223,6 +223,7 @@ INSERT INTO link VALUES (NULL,
 			 (SELECT id FROM url      WHERE path='$path'));
 
 -- #8 if you want all information you need use NATURAL JOIN:
+.mode html
 SELECT date,server,chan,nick,proto,hostname,path
        FROM server,chan,nick,proto,hostname,url,link 
        WHERE server.id=link.id_server     AND 
