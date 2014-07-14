@@ -34,14 +34,34 @@ our %IRSSI = (
     );
 
 my %global_variables = (
-    mode => 'sqlite',
-    log => $ENV{'HOME'}.'/.irssi/link.log',
-    report => 'html',
-    schema => $ENV{'HOME'}.'/.irssi/scripts/schema.sql'
+    mode      => 'sqlite',
+    scheme    => 'v2',
+    log       => $ENV{'HOME'}.'/.irssi/link.log',
+    report    => 'html',
+    schema    => $ENV{'HOME'}.'/.irssi/scripts/schema.sql',
+    time_ret  => 90, # value in day
+    debug     => 1
 );
 
 # regex taken from http://daringfireball.net/2010/07/improved_regex_for_matching_urls
-my $url_regex = qr((?i)\b((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’])));
+# rewriting this regex (one-line is bad)
+my $url_regex = qr{(?i)\b
+                   (
+                    (?:[a-z][\w-]+:
+                     (?:/{1,3}|[a-z0-9%])
+                     |www\d{0,3}[.]
+                     |[a-z0-9.\-]+[.][a-z]{2,4}/
+                    )
+                    (?:[^\s()<>]+|\(
+                     ([^\s()<>]+|
+                     (\([^\s()<>]+\)))*\)
+                    )+
+                    (?:\(
+                     ([^\s()<>]+|
+                      (\([^\s()<>]+\))
+                     )*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]
+                    )
+                   )}x;
 
 ######################################################################
 # functions scripts                                                  #
@@ -50,19 +70,30 @@ sub get_url {
     # split message output
     my ($server, $msg, $nick, $nick_addr, $target) = @_;
 
-    # check if message contain URL
+    # check if message match valid URL (via $url_regex)
+    # parse it:
     if ( $msg =~ $url_regex ) {
-
         # split message with null characters
         my @buf = split(/\s/, $msg);
 
-        # second check. If one word == URL, print it
+        # second check. If one 'word' ~= URL, just add it
+        # into sqlite database via store_url_sqlite_v2.
         foreach my $parse (@buf) {
             if ( $parse =~ $url_regex ) {
-		store_url_sqlite_v2($server->{'address'}, 
-				    $target,
-				    $nick,
-				    $parse);
+		if (($global_variables{"mode"}=~/sqlite/) &&
+		    ($global_variables{"scheme"}=~/v2/)) {
+		    store_url_sqlite_v2($server->{'address'}, 
+					$target,
+					$nick,
+					$parse);
+		}
+		if ($global_variables{"debug"}>0) {
+		    my $mes = $server->{'address'}." ".
+			      $target." ".
+			      $nick." ".
+			      $parse;
+		    print $mes;
+		}
             }
         }
     }
@@ -84,9 +115,9 @@ sub store_url_sqlite_v2 ($$$$) {
 
     # delete not secure characters
     $server =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
-    $chan =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g; 
-    $nick =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
-    $url =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
+    $chan   =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g; 
+    $nick   =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
+    $url    =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
     my ($proto, $hostname, $path) = cut_url($url);
 
     # v0.2 - new function: parse link for path, hostname, and proto
@@ -131,6 +162,40 @@ sub store_url_sqlite_v2 ($$$$) {
     # 7: finally add date into the link table! :)
     sqlite_add_link($db_str, $server, $chan, $nick,
 		    $proto, $hostname, $path);
+
+    #8: adding purge function ;)
+    if ($global_variables{"time_ret"}>1) {
+	purge_link_sqlite_v2($db_str);
+    }
+}
+
+sub purge_link_sqlite_v2 ($) {
+    my $a_dbi = shift;
+    
+    my $purge_time=strftime("%Y-%m-%d", 
+			    localtime(time-($global_variables{"time_ret"}*86400)));
+    
+    # small check with pseudo-random value
+    if ((int(rand(102))%101)==0) {
+
+	if ($global_variables{"debug"}>0) {	
+	    print "purge link before $purge_time";
+	}
+
+	my $a_request = "DELETE FROM link
+                             WHERE date<date('".$purge_time."')";
+	
+	my $db = DBI->connect($a_dbi,"","");
+	
+	my $db_conn = $db->do('PRAGMA foreign_keys = ON') 
+	    or die "purge link pragma error.\n";
+	
+	$db_conn = $db->prepare($a_request)
+	    or die "purge link prepare request error.\n";
+	
+	$db_conn->execute()
+	    or die "purge link execute error.\n";
+    }
 }
 
 sub cut_url ($) {
@@ -169,6 +234,7 @@ sub cut_url ($) {
 sub sqlite_add_server ($$) {
     my ($a_dbi, $a_server) = @_;
 
+    # delete dangerous characters
     $a_server =~ s/(\'|\"|\`|\)|\()//g;
 
     my $a_request = "INSERT INTO server
@@ -533,12 +599,30 @@ sub sqlite_check_path ($$) {
 ######################################################################
 # sqlite_get functions                                               #
 ######################################################################
-sub sqlite_get_server () {}
+sub sqlite_get_server () {
+    my $g_dbi = @_;
+    my $g_request = "SELECT server FROM server";
+
+    my $db = DBI->connect($g_dbi,"","");
+
+    my $db_conn = $db->do('PRAGMA foreign_keys = ON')
+	or die "get server pragma error.\n";
+
+    $db_conn = $db->prepare($g_request)
+	or die "get server prepare request error.\n";
+
+    $db_conn->execute()
+	or die "get server execute error.\n";
+
+    return 1;
+}
+
 sub sqlite_get_chan () {}
 sub sqlite_get_nick () {}
 sub sqlite_get_proto () {}
 sub sqlite_get_hostname () {}
 sub sqlite_get_path () {}
+
 sub sqlite_get_url ($) {
     my $g_dbi = @_;
     my $g_request  = "SELECT date,server,chan,nick,proto,hostname,path

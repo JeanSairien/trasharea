@@ -22,6 +22,8 @@ This script was tested on FreeBSD 9.1 with:
 * sqlite3-3.7.17_1
 * irssi-0.8.15_5
 
+2014-07-14: rewriting function and add automatic sqlite purge + debug mode.
+
 2013-09-03: v0.2 just works. Need some improvement, but works. :)
 
 2013-09-03: Script is in "Alpha Mode". I test sql schema and this

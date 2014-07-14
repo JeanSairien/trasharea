@@ -49,6 +49,7 @@ DROP TABLE IF EXISTS hostname;
 DROP TABLE IF EXISTS nick;
 DROP TABLE IF EXISTS chan;
 DROP TABLE IF EXISTS server;
+DROP TABLE IF EXISTS highlight; -- not used already
 
 -- create table server (contain all server name)
 -- info: need check string size (server<128char)
@@ -112,6 +113,13 @@ CREATE TABLE hostname ( id       INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
 -- info: need check string size (proto<12char)
 CREATE TABLE proto ( id    INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
                      proto TEXT    UNIQUE
+);
+
+-- v0.3 - new table highlight - not used 
+-- info: store special word into hit to match url
+CREATE TABLE highlight (
+       id   INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
+       word TEXT UNIQUE
 );
 
 -- v0.2 - All first line in some table is for unknown value
