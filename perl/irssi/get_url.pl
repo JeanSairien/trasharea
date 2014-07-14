@@ -9,17 +9,6 @@
 # Documentation/refernce:
 #    http://www.irssi.org/documentation/perl
 #    https://github.com/shabble/irssi-docs/wiki
-#
-# -> define protocol:
-#    ^[a-zA-Z]{2,32}://$
-# 
-# -> define hostname:
-#    ^(([[:print:]]{1,256}\.[a-zA-Z]{2,16})     # hostname
-#    |[[:digit:]]{1,3}\.){3}[[:digit:]]{1,3}    # ip4 address
-#    |[[:xdigit:]]{0,4}\:){1,8}[[:xdigit:]]{0,4}$ # ip6 address
-#
-# -> define url:
-#    ^.*{1,1024}$
 ######################################################################
 
 use strict;
@@ -79,7 +68,7 @@ my $url_regex = qr{(?i)\b
 ######################################################################
 sub get_url {
     # split message output
-    my ($server, $msg, $nick, $nick_addr, $target) = chomp(@_);
+    my ($server, $msg, $nick, $nick_addr, $target) = @_;
 
     # check if message match valid URL (via $url_regex)
     # parse it:
@@ -122,7 +111,7 @@ sub init_database () {
 }
 
 sub store_url_sqlite_v2 ($$$$) {
-    my ($server, $chan, $nick, $url) = chomp(@_);
+    my ($server, $chan, $nick, $url) = @_;
 
     # delete not secure characters
     $server =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
@@ -146,13 +135,13 @@ sub store_url_sqlite_v2 ($$$$) {
     }
 
     # 2: check if chan exist on the server with:
-    if (sqlite_check_chan($db_str, $chan)<1) {
-	sqlite_add_chan($db_str, $chan);
+    if (sqlite_check_chan($db_str, $server, $chan)<1) {
+	sqlite_add_chan($db_str, $server, $chan);
     }
 
     # 3: check if nick exist on the server and the chan with:
-    if (sqlite_check_nick($db_str, $nick)<1) {
-	sqlite_add_nick($db_str, $nick);
+    if (sqlite_check_nick($db_str, $server, $chan, $nick)<1) {
+	sqlite_add_nick($db_str, $server, $chan, $nick);
     }
 
     # 4: check if proto exist in proto table
@@ -211,7 +200,7 @@ sub purge_link_sqlite_v2 ($) {
 
 sub cut_url ($) {
     my @url;
-    my $proto = my $hostname = my $path = chomp($_[0]);
+    my $proto = my $hostname = my $path = $_[0];
 
     # 1: parsing proto by default http://.
     if ( $proto =~ /:\/{1,}.*/) {
@@ -243,7 +232,7 @@ sub cut_url ($) {
 # sqlite_add functions                                               #
 ######################################################################
 sub sqlite_add_server ($$) {
-    my ($a_dbi, $a_server) = chomp(@_);
+    my ($a_dbi, $a_server) = @_;
 
     # delete dangerous characters
     $a_server =~ s/(\'|\"|\`|\)|\()//g;
@@ -263,14 +252,18 @@ sub sqlite_add_server ($$) {
 	or die "add server execute error.\n";
 }
 
-sub sqlite_add_chan ($$) {
-    my ($a_dbi, $a_chan) = chomp(@_);
+sub sqlite_add_chan ($$$) {
+    my ($a_dbi, $a_server, $a_chan) = @_;
 
+    $a_server =~ s/(\'|\"|\`|\)|\()//g;
     $a_chan   =~ s/(\'|\"|\`|\)|\()//g;
 
     my $a_request = "INSERT INTO chan 
                      VALUES (NULL, 
-                             '".$a_chan."')";
+                             '".$a_chan."',
+                             (SELECT id 
+                              FROM server 
+                              WHERE server='".$a_server."'))";
 
     my $db = DBI->connect($a_dbi,"","");
 
@@ -285,13 +278,22 @@ sub sqlite_add_chan ($$) {
 
 }
 
-sub sqlite_add_nick ($$) {
-    my ($a_dbi, $a_nick) = chomp(@_);
+sub sqlite_add_nick ($$$$) {
+    my ($a_dbi, $a_server, $a_chan, $a_nick) = @_;
 
+    $a_server =~ s/(\'|\"|\`|\)|\()//g;
+    $a_chan   =~ s/(\'|\"|\`|\)|\()//g;
     $a_nick   =~ s/(\'|\"|\`|\)|\()//g;
 
     my $a_request = "INSERT INTO nick 
-                     VALUES (NULL,'".$a_nick."')";
+                     VALUES (NULL,
+                             '".$a_nick."',
+                             (SELECT id 
+                              FROM chan 
+                              WHERE chan='".$a_chan."'),
+                             (SELECT id 
+                              FROM server 
+                              WHERE server='".$a_server."'))";
 
     my $db = DBI->connect($a_dbi,"","");
 
@@ -306,7 +308,7 @@ sub sqlite_add_nick ($$) {
 }
 
 sub sqlite_add_proto ($$) {
-    my ($a_dbi, $a_proto) = chomp(@_);
+    my ($a_dbi, $a_proto) = @_;
     $a_proto =~ s/(\'|\"|\`|\)|\()//g;
 
     my $a_request = "INSERT INTO proto
@@ -325,7 +327,7 @@ sub sqlite_add_proto ($$) {
 }
 
 sub sqlite_add_hostname ($$) {
-    my ($a_dbi, $a_hostname) = chomp(@_);
+    my ($a_dbi, $a_hostname) = @_;
 
     $a_hostname =~ s/(\'|\"|\`|\)|\()//g;
 
@@ -345,7 +347,7 @@ sub sqlite_add_hostname ($$) {
 }
 
 sub sqlite_add_url ($$$$) {
-    my ($a_dbi, $a_proto, $a_hostname, $a_path) = chomp(@_);
+    my ($a_dbi, $a_proto, $a_hostname, $a_path) = @_;
 
     $a_proto    =~ s/(\'|\"|\`|\)|\()//g;
     $a_hostname =~ s/(\'|\"|\`|\)|\()//g;
@@ -374,7 +376,7 @@ sub sqlite_add_url ($$$$) {
 }
 
 sub sqlite_add_path ($$$$) {
-    my ($a_dbi, $a_proto, $a_hostname, $a_path) = chomp(@_);
+    my ($a_dbi, $a_proto, $a_hostname, $a_path) = @_;
 
     $a_proto    =~ s/(\'|\"|\`|\)|\()//g;
     $a_hostname =~ s/(\'|\"|\`|\)|\()//g;
@@ -404,7 +406,7 @@ sub sqlite_add_path ($$$$) {
 
 sub sqlite_add_link ($$$$$$$) {
     my ($a_dbi, $a_server, $a_chan, $a_nick, 
-	$a_proto, $a_hostname, $a_path) = chomp(@_);
+	$a_proto, $a_hostname, $a_path) = @_;
 
     # set date
     my $current_time = strftime("%Y-%m-%d %H:%M:%S",localtime);
@@ -454,7 +456,7 @@ sub sqlite_add_link ($$$$$$$) {
 # sqlite_check functions                                             #
 ######################################################################
 sub sqlite_check_server ($$) {
-    my ($c_dbi, $c_server) = chomp(@_);
+    my ($c_dbi, $c_server) = @_;
     $c_server =~ s/(\'|\"|\`|\)|\()//g;
 
     my $c_request = "SELECT COUNT(*) 
@@ -474,14 +476,18 @@ sub sqlite_check_server ($$) {
     return $db_conn->fetchrow_array;
 }
 
-sub sqlite_check_chan ($$) {
-    my ($c_dbi, $c_chan) = chomp(@_);
+sub sqlite_check_chan ($$$) {
+    my ($c_dbi, $c_server, $c_chan) = @_;
 
+    $c_server =~ s/(\'|\"|\`|\)|\()//g;
     $c_chan   =~ s/(\'|\"|\`|\)|\()//g;
 
     my $c_request = "SELECT COUNT(*) 
                      FROM chan 
-       		     WHERE chan='".$c_chan."'";
+       		     WHERE chan='".$c_chan."' AND 
+       		           id_server=(SELECT id 
+                                      FROM server 
+                                      WHERE server='".$c_server."')";
 
     my $db = DBI->connect($c_dbi,"","");
     my $db_conn = $db->do('PRAGMA foreign_keys = ON')
@@ -496,16 +502,24 @@ sub sqlite_check_chan ($$) {
     return $db_conn->fetchrow_array;
 }
 
-sub sqlite_check_nick ($$) {
-    my ($c_dbi, $c_nick) = chomp(@_);
+sub sqlite_check_nick ($$$$) {
+    my ($c_dbi, $c_server, $c_chan, $c_nick) = @_;
 
+    $c_server =~ s/(\'|\"|\`|\)|\()//g;
+    $c_chan   =~ s/(\'|\"|\`|\)|\()//g;
     $c_nick   =~ s/(\'|\"|\`|\)|\()//g;
 
     my $c_request = "SELECT COUNT(*) 
                      FROM nick 
-                     WHERE nick='".$c_nick."'";
+                     WHERE nick='".$c_nick."' AND
+                           id_chan=(SELECT id 
+                                    FROM chan
+                                    WHERE chan='".$c_chan."') AND
+                           id_server=(SELECT id 
+                                      FROM server 
+                                      WHERE server='".$c_server."')";
 
-    my $db = DBI->connect($c_dbi,"","");
+        my $db = DBI->connect($c_dbi,"","");
     my $db_conn = $db->do('PRAGMA foreign_keys = ON')
 	or die "check nick pragma error.\n";
 
@@ -519,7 +533,7 @@ sub sqlite_check_nick ($$) {
 }
 
 sub sqlite_check_proto ($$) {
-    my ($c_dbi, $c_proto) = chomp(@_);
+    my ($c_dbi, $c_proto) = @_;
 
     $c_proto =~ s/(\'|\"|\`|\)|\()//g;
 
@@ -541,7 +555,7 @@ sub sqlite_check_proto ($$) {
 }
 
 sub sqlite_check_hostname ($$) {
-    my ($c_dbi, $c_hostname) = chomp(@_);
+    my ($c_dbi, $c_hostname) = @_;
 
     $c_hostname =~ s/(\'|\"|\`|\)|\()//g;
 
@@ -562,7 +576,7 @@ sub sqlite_check_hostname ($$) {
 }
 
 sub sqlite_check_path ($$) {
-    my ($c_dbi, $c_path) = chomp(@_);
+    my ($c_dbi, $c_path) = @_;
 
     $c_path =~ s/(\'|\"|\`)//g;
 
@@ -610,7 +624,7 @@ sub sqlite_get_hostname () {}
 sub sqlite_get_path () {}
 
 sub sqlite_get_url ($) {
-    my $g_dbi = chomp(@_);
+    my $g_dbi = @_;
     my $g_request  = "SELECT date,server,chan,nick,proto,hostname,path
                       FROM server,chan,nick,proto,hostname,url,link
                       WHERE server.id=link.id_server     AND
