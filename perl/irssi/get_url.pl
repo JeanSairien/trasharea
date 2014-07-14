@@ -200,7 +200,7 @@ sub purge_link_sqlite_v2 ($) {
 
 sub cut_url ($) {
     my @url;
-    my $proto = my $hostname = my $path = $_[0];
+    my $proto = my $hostname = my $path = shift;
 
     # 1: parsing proto by default http://.
     if ( $proto =~ /:\/{1,}.*/) {
@@ -599,8 +599,8 @@ sub sqlite_check_path ($$) {
 ######################################################################
 # sqlite_get functions                                               #
 ######################################################################
-sub sqlite_get_server () {
-    my $g_dbi = @_;
+sub sqlite_get_server ($) {
+    my $g_dbi = shift;
     my $g_request = "SELECT server FROM server";
 
     my $db = DBI->connect($g_dbi,"","");
@@ -624,7 +624,7 @@ sub sqlite_get_hostname () {}
 sub sqlite_get_path () {}
 
 sub sqlite_get_url ($) {
-    my $g_dbi = @_;
+    my $g_dbi = shift;
     my $g_request  = "SELECT date,server,chan,nick,proto,hostname,path
                       FROM server,chan,nick,proto,hostname,url,link
                       WHERE server.id=link.id_server     AND
