@@ -87,13 +87,6 @@ sub get_url {
 					$nick,
 					$parse);
 		}
-		if ($global_variables{"debug"}>0) {
-		    my $mes = $server->{'address'}." ".
-			      $target." ".
-			      $nick." ".
-			      $parse;
-		    print $mes;
-		}
             }
         }
     }
@@ -128,6 +121,14 @@ sub store_url_sqlite_v2 ($$$$) {
     my $db_str = "DBI:SQLite:dbname=".$global_variables{'log'};
     my $dbh = DBI->connect($db_str,"","");
     my $dbi = $dbh->do('PRAGMA foreign_keys = ON');
+
+    if ($global_variables{"debug"}>0) {
+	my $mes = $server." ".
+	          $chan." ".
+	          $nick." ".
+	          $url;
+	print $mes;
+    }
 
     # 1: check if server exist
     if (sqlite_check_server($db_str, $server)<1) {
@@ -226,6 +227,45 @@ sub cut_url ($) {
     # 4: return @url array with $proto, $hostname, and $path.
     @url = ($proto, $hostname, $path);
     return @url;
+}
+
+sub secure_url ($) {
+    my $local_url = shift;
+    my @array = (
+        {'char'=>qr(!),  'replace'=>'%21'},
+        {'char'=>qr(\`), 'replace'=>'%60'},
+        {'char'=>qr(\[), 'replace'=>'%5B'},
+        {'char'=>qr(\]), 'replace'=>'%5D'},
+        {'char'=>qr(\-), 'replace'=>'%2D'},
+        {'char'=>qr(\#), 'replace'=>'%23'},
+        {'char'=>qr(\$), 'replace'=>'%24'},
+        {'char'=>qr(\&), 'replace'=>'%26'},
+        {'char'=>qr(\'), 'replace'=>'%27'},
+        {'char'=>qr{\(}, 'replace'=>'%28'},
+        {'char'=>qr{\)}, 'replace'=>'%29'},
+        {'char'=>qr(\<), 'replace'=>'%3C'},
+        {'char'=>qr(\=), 'replace'=>'%3D'},
+        {'char'=>qr(\>), 'replace'=>'%3E'}
+        );
+    
+    my $string = undef;
+    for (@array) { 
+        if (!defined($string)){$string=$_->{'char'}}
+        else { $string=$string."|".$_->{'char'}}
+    }
+
+    if ($local_url =~ $string ) {
+        foreach my $i (@array) {
+            if ($debug) {
+                print $i->{'char'}.' replaced by '.$i->{"replace"}."\n";
+            }
+            my $char_origin = $i->{'char'};
+            my $char_replace = $i->{'replace'};
+            $local_url =~ s/$char_origin/$char_replace/g;
+        }
+    }
+
+    return $local_url;
 }
 
 ######################################################################
