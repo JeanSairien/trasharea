@@ -106,22 +106,6 @@ sub init_database () {
 sub store_url_sqlite_v2 ($$$$) {
     my ($server, $chan, $nick, $url) = @_;
 
-    # delete not secure characters
-    $server =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
-    $chan   =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g; 
-    $nick   =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
-    $url    =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
-    my ($proto, $hostname, $path) = cut_url($url);
-
-    # v0.2 - new function: parse link for path, hostname, and proto
-    my @link = cut_url($url);
-
-    # 0: open sqlite database with foreign_keys=ON ! It's very
-    #    important!
-    my $db_str = "DBI:SQLite:dbname=".$global_variables{'log'};
-    my $dbh = DBI->connect($db_str,"","");
-    my $dbi = $dbh->do('PRAGMA foreign_keys = ON');
-
     if ($global_variables{"debug"}>0) {
 	my $mes = $server." ".
 	          $chan." ".
@@ -129,6 +113,20 @@ sub store_url_sqlite_v2 ($$$$) {
 	          $url;
 	print $mes;
     }
+
+    # delete not secure characters
+    $server =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
+    $chan   =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g; 
+    $nick   =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
+    $url    =~ s/(\'|\"|\`|\)|\(|\[|\]|--|\<|\>)//g;
+    # $url = quotemeta($url);
+    my ($proto, $hostname, $path) = cut_url($url);
+
+    # 0: open sqlite database with foreign_keys=ON ! It's very
+    #    important!
+    my $db_str = "DBI:SQLite:dbname=".$global_variables{'log'};
+    my $dbh = DBI->connect($db_str,"","");
+    my $dbi = $dbh->do('PRAGMA foreign_keys = ON');
 
     # 1: check if server exist
     if (sqlite_check_server($db_str, $server)<1) {
@@ -200,44 +198,50 @@ sub purge_link_sqlite_v2 ($) {
 }
 
 sub cut_url ($) {
+	my ($proto, $hostname, $path);
     my @url;
-    my $proto = my $hostname = my $path = shift;
+    my $arg = shift();
+	chomp($arg);
 
-    # 1: parsing proto by default http://.
-    if ( $proto =~ /:\/{1,}.*/) {
-        $proto =~ s/:\/{1,}.*/:\/\//;
-    }
-    else {
-        $proto="http://";
-    }
+	my $regex = qr{(?i)\b
+	                (?<PROTO>\w+\:/{2,3}|)                       # get protocol 
+                    (?<HOSTNAME>([a-z0-9]+\.){0,}\w+\.[a-z]{2,}) # get hostname
+                    (?<PATH>(/.*|)$)                             # get path (rest)
+	              }xi;
 
-    # 2: parsing hostname.
-    if ( $hostname =~ /(.*:\/\/|)/) {
-	$hostname =~ s/$proto//;
-	$hostname =~ s/\/.*$//;
-    }
-
-    # 3: parsing path.
-    if (!($path =~ s/$proto// && 
-	  $path =~ s/$hostname// && 
-	  $path =~ /\S/)) {
-	$path='NULL';
-    }
-
-    # 4: return @url array with $proto, $hostname, and $path.
-    @url = ($proto, $hostname, $path);
-    return @url;
+	if ( $arg =~ m#$regex# ) {
+        if ($+{PROTO}) {
+            $proto = $+{PROTO};
+        }
+        else {
+            $proto="http://";
+        }
+        if ($+{HOSTNAME}) {
+            $hostname=$+{HOSTNAME};
+        }
+        if ($+{PATH}) {
+            $path=$+{PATH};
+        }
+        else {
+            $path="NULL";
+        }
+		# if ($global_variables{debug}) {
+		#	printf("debug: proto=%s", $proto);
+		#	printf("debug: hostname=%s", $hostname);
+		#	printf("debug: path=%s", $path);
+		# }
+		@url = ($proto, $hostname, $path);
+		return @url;
+	}
 }
 
 sub secure_url ($) {
     my $local_url = shift;
     my @array = (
-        {'char'=>qr(!),  'replace'=>'%21'},
         {'char'=>qr(\`), 'replace'=>'%60'},
         {'char'=>qr(\[), 'replace'=>'%5B'},
         {'char'=>qr(\]), 'replace'=>'%5D'},
         {'char'=>qr(\-), 'replace'=>'%2D'},
-        {'char'=>qr(\#), 'replace'=>'%23'},
         {'char'=>qr(\$), 'replace'=>'%24'},
         {'char'=>qr(\&), 'replace'=>'%26'},
         {'char'=>qr(\'), 'replace'=>'%27'},
@@ -245,7 +249,8 @@ sub secure_url ($) {
         {'char'=>qr{\)}, 'replace'=>'%29'},
         {'char'=>qr(\<), 'replace'=>'%3C'},
         {'char'=>qr(\=), 'replace'=>'%3D'},
-        {'char'=>qr(\>), 'replace'=>'%3E'}
+        {'char'=>qr(\>), 'replace'=>'%3E'},
+	{'char'=>qr(\*), 'replace'=>'%2A'}
         );
     
     my $string = undef;
@@ -256,9 +261,6 @@ sub secure_url ($) {
 
     if ($local_url =~ $string ) {
         foreach my $i (@array) {
-            if ($debug) {
-                print $i->{'char'}.' replaced by '.$i->{"replace"}."\n";
-            }
             my $char_origin = $i->{'char'};
             my $char_replace = $i->{'replace'};
             $local_url =~ s/$char_origin/$char_replace/g;
