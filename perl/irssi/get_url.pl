@@ -233,6 +233,11 @@ sub cut_url ($) {
 		@url = ($proto, $hostname, $path);
 		return @url;
 	}
+	else {
+		# this url seems to be invalid. send default url
+		@url = ("http://", "localhost", "NULL");
+		return @url;
+	}
 }
 
 sub secure_url ($) {
