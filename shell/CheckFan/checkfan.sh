@@ -66,7 +66,7 @@ _print_error () {
 ######################################################################
 
 usage () {
-  printf -- "usage: %s [-s sleep] [-l level] [-c counter]\n" "$0"
+  printf -- "usage: %s [-s sleep] [-l fan level] [-c counter]\n" "$0"
   exit 1
 }
 
@@ -132,12 +132,13 @@ trap "_automatic; exit 1;"  SIGTERM
 trap "_level 0;"            SIGUSR1
 trap "_level ${FAN_LEVEL};" SIGUSR2
 
-args=$(getopt ds:c:l: $*)
+args=$(getopt hds:c:l: $*)
 set -- $args
 
 while true
 do
   case "$1" in
+    -h) usage;;
     -d) DEBUG="yes";
         _print_debug "set debug";
         shift;;
