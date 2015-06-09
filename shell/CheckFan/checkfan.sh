@@ -31,6 +31,21 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE                #
 # POSSIBILITY OF SUCH DAMAGE.                                        #
 #                                                                    #
+# ------------------------------------------------------------------ #
+#                                                                    #
+# This is script was created for check fan speed and sensor on       #
+# lenovo thinkpad x61 and thinkpad x220. You need to launch it with  #
+# sudo or via root account (UID==0).                                 #
+#                                                                    #
+# Need:                                                              #
+#   - random level mode                                              #
+#   - average temperature                                            #
+#   - voltage sensor                                                 #
+#   - CPU freq                                                       #
+#   - more debug information                                         #
+#   - linux/openbsd/netbsd support                                   #
+#   - autoload acpi_ibm kernel module if not loaded                  #
+#                                                                    #
 ######################################################################
 
 FAN_LEVEL="7"
@@ -44,6 +59,9 @@ SENSORS="hw.acpi.thermal.tz0.temperature
 
 THERMAL_KEYS="hw\.acpi\.thermal\.tz[0-9]+\.temperature
               dev\.cpu\.[0-9]+.temperature"
+
+_BUF_SPEED=""
+_BUF_TEMP=""
 
 ######################################################################
 # global functions                                                   #
@@ -111,27 +129,49 @@ usage () {
     printf -- "       -l: %s \n" "${l_msg}"
     printf -- "       -s: %s \n" "${s_msg}"
   fi
-  exit 1
+  exit 0
+}
+
+_check_int () {
+  local arg="${1}"
+  if printf -- "%s" "${arg}" | egrep "^[0-9]+$"
+  then
+    return 0
+  else
+    return 1
+  fi
+}
+
+_sum_speed () {
+  local tot=$(echo ${_BUF_SPEED}|wc -w|sed -r 's/\ +//g')
+  local sum
+
+  for int in ${_BUF_SPEED}
+  do
+    sum=$((sum+$int))
+  done
+
+  echo "${sum}/${tot}" | bc
 }
 
 # switch to automatic mode
 _automatic () {
   _print_info "automatic mode enabled"
-  ret=$(sysctl dev.acpi_ibm.0.fan=1 2>&1)
+  local ret=$(sysctl dev.acpi_ibm.0.fan=1 2>&1)
   _print_debug "${ret}"
 }
 
 # switch to manual mode
 _manual () {
   _print_info "manual mode enabled"
-  ret=$(sysctl dev.acpi_ibm.0.fan=0 2>&1)
+  local ret=$(sysctl dev.acpi_ibm.0.fan=0 2>&1)
   _print_debug "${ret}"
 }
 
 # switch to level
 # first argument set level. Only integer.
 _level () {
-  level="$1"
+  local level="$1"
   if echo "${level}" | egrep "^[0-9]+$" 2>&1 >/dev/null
   then
     _print_info "change to level '${level}'"
@@ -144,12 +184,16 @@ _level () {
 
 # return fan speed
 _speed () {
-  sysctl -n dev.acpi_ibm.0.fan_speed
+  local fan_speed=$(sysctl -n dev.acpi_ibm.0.fan_speed)
+  if _check_int "${fan_speed}"
+  then
+    return "${fan_speed}"
+  fi
 }
 
 # return temperature and thermal informations
 _temp () {
-  buf=""
+  local buf=""
   for sensor in ${SENSORS}
   do
     ret=$(sysctl -n "${sensor}")
@@ -174,8 +218,8 @@ _temp () {
 # search thermal information in sysctl
 _find_thermal () {
   _print_debug "launch thermal information search..."
-  b=""
-  buf=""
+  local b=""
+  local buf=""
 
   for key in ${THERMAL_KEYS}
   do
@@ -211,7 +255,9 @@ _main () {
   do
     _level "${COUNTER}"
     _print_info "fan speed is: $(_speed)"
+    _BUF_SPEED=$(_speed)" "${_BUF_SPEED}
     _print_info "temperature: $(_temp)"
+    _BUF_TEMP=$(_temp)" "${_BUF_TEMP}
     sleep $SLEEP
     COUNTER=$(($COUNTER+1))
   done
@@ -254,21 +300,45 @@ do
         SENSORS=$(_find_thermal);
         shift;;
 
-    -s) SLEEP="$2";
-        _print_debug "set sleep to $2";
+    -s) if _check_int "${2}" 2>&1 >/dev/null
+        then 
+          SLEEP="${2}";
+          _print_debug "set sleep to ${2}";
+        else 
+          _print_error "sleep flags (-s) need an integer." 
+          exit 201
+        fi
         shift; shift;;
 
-    -c) COUNTER="$2";
-        _print_debug "set counter to $2";
+    -c) if _check_int "${2}" 2>&1 >/dev/null 
+        then 
+          COUNTER="${2}";
+          _print_debug "set counter to ${2}";
+        else 
+          _print_error "counter flag (-c) need an integer."
+          exit 202
+        fi
         shift; shift;;
 
-    -l) FAN_LEVEL="$2";
-        _print_debug "set level to $2";
+    -l) if _check_int "${2}" 2>&1 >/dev/null
+        then
+          FAN_LEVEL="${2}";
+          _print_debug "set level to ${2}";
+        else
+          _print_error "fan level flag (-l) need an integer."
+          exit 203
+        fi
         shift; shift;;
 
     --) shift; break;;
   esac
 done
+
+if [ "$(id -u)" -ne 0 ]
+then
+  _print_error "this software need root privilege."
+  exit 1
+fi
 
 _manual
 
@@ -276,14 +346,14 @@ if [ "${LOOP_MODE}" ]
 then
   while _main
   do 
-    sleep 1
+    sleep "${SLEEP}"
   COUNTER=0
   done
 else
   _main
 fi
 
-main
-
 _automatic
+
+_print_info "fan speed average: $(_sum_speed)"
 
